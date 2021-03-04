@@ -1,3 +1,6 @@
+'''
+This file contains aux functions to manage files.
+'''
 import os
 import re
 
@@ -15,7 +18,7 @@ This function receives the input folder path name and returns a list containing 
 '''
 def get_input_files(path_name):
     if not os.path.exists(path_name):
-        print('A pasta input/ não foi encontrada no diretório raíz.')
+        print('The directory input/ does not exists.')
 
     entries = os.listdir(path_name)
     valid_files = []

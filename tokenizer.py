@@ -1,13 +1,14 @@
+'''
+This file has all needed functions to tokenize elements.
+'''
 import re
 import lexicon
-import filer
 
-digit = re.compile(r'[0-9]')
 letter = re.compile(r'[a-zA-Z]')
 letter_digit_underscore = re.compile(r'[a-zA-Z0-9_]')
 
 '''
-This function tokenize a possible number and returns the token and its last char column.
+This function tokenize a possible number and returns the token and next char column.
 '''
 def tokenize_number(line_index, column_index, line): 
     number = line[column_index]
@@ -15,7 +16,7 @@ def tokenize_number(line_index, column_index, line):
     dot_found = False
     decimal_inserted = False
     
-    while column_index < len(line) and (digit.match(line[column_index]) or (not dot_found and line[column_index] == '.')):
+    while column_index < len(line) and (line[column_index] in lexicon.digits or (not dot_found and line[column_index] == '.')):
         number += line[column_index]
 
         if(dot_found):
@@ -27,12 +28,12 @@ def tokenize_number(line_index, column_index, line):
 
     # If the number contains a "dot", it should have decimal numbers.
     if dot_found and not decimal_inserted:
-        return {'token': '<' + number + ', number_error >', 'column_index': column_index}
+        return {'token': '< ' + number + ', number_error, ' + str(line_index + 1) + ' >', 'column_index': column_index}
     else:
-        return {'token': '<' + number + ', number >', 'column_index': column_index}
+        return {'token': '< ' + number + ', number, ' + str(line_index + 1) + ' >', 'column_index': column_index}
 
 '''
-This function converts an id or a word into a token and returns the token and its last char column.
+This function converts an id or a word into a token and returns the token and next char column.
 '''
 def tokenize_id_or_word(line_index, column_index, line):
     id_or_word = line[column_index]
@@ -43,9 +44,16 @@ def tokenize_id_or_word(line_index, column_index, line):
         column_index += 1
 
     if id_or_word in lexicon.reserved_words:
-        return {'token': '<' + id_or_word + ', word , ' + str(line_index + 1) + ' >', 'column_index': column_index}
+        return {'token': '< ' + id_or_word + ', word , ' + str(line_index + 1) + ' >', 'column_index': column_index}
     else:
-        return {'token': '<' + id_or_word + ', identifier , ' + str(line_index + 1) + ' >', 'column_index': column_index}
+        return {'token': '< ' + id_or_word + ', identifier , ' + str(line_index + 1) + ' >', 'column_index': column_index}
+
+'''
+This functions tokenizes a delimiter using the line and column index, the delimiter character
+and returns its token and next char column
+'''
+def tokenize_delimiter(line_index, column_index, delimiter): 
+    return {'token': '< ' + delimiter + ', delimiter, ' + str(line_index + 1) + ' >', 'column_index': column_index + 1}
 
 '''
 This function tokenizes input lines and returns an array containing generated tokens.
@@ -56,11 +64,15 @@ def get_tokens(input_lines):
     
     for line_index, line in enumerate(input_lines):  
         while column_index < len(line):
-            if digit.match(line[column_index]):
+            if line[column_index] in lexicon.delimiters:
+                result_pair = tokenize_delimiter(line_index, column_index, line[column_index])
+                column_index = result_pair['column_index']
+                tokens.append(result_pair['token'])
+            elif line[column_index] in lexicon.digits:
                 result_pair = tokenize_number(line_index, column_index, line)
                 column_index = result_pair['column_index']
                 tokens.append(result_pair['token'])
-            if letter.match(line[column_index]):
+            elif letter.match(line[column_index]):
                 result_pair = tokenize_id_or_word(line_index, column_index, line)
                 column_index = result_pair['column_index']
                 tokens.append(result_pair['token'])
@@ -68,23 +80,3 @@ def get_tokens(input_lines):
                 column_index += 1
             
     return tokens
-
-input_path = 'input/'
-output_path = 'output/'
-valid_files = filer.get_input_files(input_path)
-filer.init_output_folder(output_path)
-
-for valid_file in valid_files:
-    # read the input file
-    input_file = open(input_path + valid_file, "r")
-    input_lines = filer.get_file_lines(input_path, valid_file)
-
-    # generate output content
-    tokens = get_tokens(input_lines)
-    output_content = ''
-    for token in tokens:
-        output_content += token + '\n'
-
-    # create and write an output file
-    filer.write_file(output_path, valid_file, output_content)
-
