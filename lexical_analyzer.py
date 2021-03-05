@@ -2,7 +2,7 @@
 Main lexical analyzer code:
 '''
 import filer
-import tokenizer 
+import tokenizer
 
 input_path = 'input/'
 output_path = 'output/'
