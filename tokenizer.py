@@ -3,9 +3,10 @@ This file has all needed functions to tokenize elements.
 '''
 import re
 import lexicon
+from token import Token
 
-letter = re.compile(r'[a-zA-Z]')
-letter_digit_underscore = re.compile(r'[a-zA-Z0-9_]')
+letter = re.compile(lexicon.letter)
+letter_digit_underscore = re.compile(lexicon.letter_digit_underscore)
 
 '''
 This function tokenize a possible number and returns the token and next char column.
@@ -28,9 +29,9 @@ def tokenize_number(line_index, column_index, line):
 
     # If the number contains a "dot", it should have decimal numbers.
     if dot_found and not decimal_inserted:
-        return {'token': '< ' + number + ', number_error, ' + str(line_index + 1) + ' >', 'column_index': column_index}
+        return Token(number, 'number_error', line_index, column_index)
     else:
-        return {'token': '< ' + number + ', number, ' + str(line_index + 1) + ' >', 'column_index': column_index}
+        return Token(number, 'number', line_index, column_index)
 
 '''
 This function converts an id or a word into a token and returns the token and next char column.
@@ -44,16 +45,16 @@ def tokenize_id_or_word(line_index, column_index, line):
         column_index += 1
 
     if id_or_word in lexicon.reserved_words:
-        return {'token': '< ' + id_or_word + ', word , ' + str(line_index + 1) + ' >', 'column_index': column_index}
+        return Token(id_or_word, 'word', line_index, column_index)
     else:
-        return {'token': '< ' + id_or_word + ', identifier , ' + str(line_index + 1) + ' >', 'column_index': column_index}
+        return Token(id_or_word, 'identifier', line_index, column_index)
 
 '''
 This functions tokenizes a delimiter using the line and column index, the delimiter character
 and returns its token and next char column
 '''
 def tokenize_delimiter(line_index, column_index, delimiter): 
-    return {'token': '< ' + delimiter + ', delimiter, ' + str(line_index + 1) + ' >', 'column_index': column_index + 1}
+    return Token(delimiter, 'delimiter', line_index, column_index)
 
 '''
 This function tokenizes input lines and returns an array containing generated tokens.
@@ -65,17 +66,17 @@ def get_tokens(input_lines):
     for line_index, line in enumerate(input_lines):  
         while column_index < len(line):
             if line[column_index] in lexicon.delimiters:
-                result_pair = tokenize_delimiter(line_index, column_index, line[column_index])
-                column_index = result_pair['column_index']
-                tokens.append(result_pair['token'])
+                token = tokenize_delimiter(line_index, column_index, line[column_index])
+                column_index = token.column_index + 1
+                tokens.append(token)
             elif line[column_index] in lexicon.digits:
-                result_pair = tokenize_number(line_index, column_index, line)
-                column_index = result_pair['column_index']
-                tokens.append(result_pair['token'])
+                token = tokenize_number(line_index, column_index, line)
+                column_index = token.column_index + 1
+                tokens.append(token)
             elif letter.match(line[column_index]):
-                result_pair = tokenize_id_or_word(line_index, column_index, line)
-                column_index = result_pair['column_index']
-                tokens.append(result_pair['token'])
+                token = tokenize_id_or_word(line_index, column_index, line)
+                column_index = token.column_index + 1
+                tokens.append(token)
             else:
                 column_index += 1
             

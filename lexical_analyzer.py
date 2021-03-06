@@ -18,7 +18,7 @@ for valid_file in valid_files:
     tokens = tokenizer.get_tokens(input_lines)
     output_content = ''
     for token in tokens:
-        output_content += token + '\n'
+        output_content += str(token) + '\n'
 
     # create and write an output file
     filer.write_file(output_path, valid_file, output_content)

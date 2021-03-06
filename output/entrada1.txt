@@ -1,30 +1,25 @@
-< 3., number_error, 1 >
-< ., delimiter, 1 >
-< 14, number, 1 >
-< testando, identifier , 1 >
-< UmaClasse5, identifier , 1 >
-< CLASSEZONA, identifier , 1 >
-< if, word , 1 >
-< while, word , 1 >
-< (, delimiter, 1 >
-< 52, number, 1 >
-< ,, delimiter, 1 >
-< kkk, identifier , 1 >
-< ), delimiter, 1 >
-< kkD2, identifier , 1 >
-< d, identifier , 1 >
-< entrada, identifier , 1 >
-< 26, number, 1 >
-< e, identifier , 1 >
-< palav, identifier , 1 >
-< 45.9, number, 1 >
-< ras, identifier , 1 >
-< 7., number_error, 1 >
-< aleat, identifier , 1 >
-< rias, identifier , 1 >
-< 4, number, 1 >
-< 8, number, 1 >
-< 872, number, 1 >
-< 26, number, 1 >
-< 8, number, 1 >
-< ;, delimiter, 1 >
+< 3., number_error, 1, 3 >
+< 14, number, 1, 6 >
+< testando, identifier, 1, 15 >
+< UmaClasse5, identifier, 1, 26 >
+< CLASSEZONA, identifier, 1, 37 >
+< if, word, 1, 40 >
+< while, word, 1, 46 >
+< 52, number, 1, 49 >
+< kkk, identifier, 1, 54 >
+< kkD2, identifier, 1, 60 >
+< d, identifier, 1, 65 >
+< entrada, identifier, 1, 73 >
+< 26, number, 1, 76 >
+< e, identifier, 1, 78 >
+< palav, identifier, 1, 84 >
+< 45.9, number, 1, 89 >
+< ras, identifier, 1, 93 >
+< 7., number_error, 1, 96 >
+< aleat, identifier, 1, 102 >
+< rias, identifier, 1, 108 >
+< 4, number, 1, 110 >
+< 8, number, 1, 112 >
+< 872, number, 1, 116 >
+< 26, number, 1, 119 >
+< 8, number, 1, 121 >
