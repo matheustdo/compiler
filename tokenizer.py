@@ -62,7 +62,7 @@ This function tokenizes input lines and returns an array containing generated to
 def get_tokens(input_lines): 
     tokens = []
     column_index = 0
-    
+
     for line_index, line in enumerate(input_lines):  
         while column_index < len(line):
             if line[column_index] in lexicon.delimiters:
@@ -79,5 +79,6 @@ def get_tokens(input_lines):
                 tokens.append(token)
             else:
                 column_index += 1
+        column_index = 0 
             
     return tokens
