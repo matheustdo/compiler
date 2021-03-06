@@ -97,7 +97,7 @@ def tokenize_logical_op(line_index, column_index, line):
     return Token(logical_op, 'logical_op', line_index, column_index, end_index)
 
 '''
-This functions chooses which tokenize function should be called to get a relational or logical operator.
+This function chooses which tokenize function should be called to get a relational or logical operator.
 '''
 def tokenize_relational_or_logical_op(line_index, column_index, line):
     relational_or_logical_op = line[column_index]
@@ -118,37 +118,24 @@ def get_tokens(input_lines):
     for line_index, line in enumerate(input_lines):  
         while column_index < len(line):
             char = line[column_index]
-            
+            token = Token(char, 'invalid_symbol', line_index, column_index, column_index)
+
             if char in lexicon.delimiters:
                 token = tokenize_delimiter(line_index, column_index, line[column_index])
-                column_index = token.column_end_index + 1
-                tokens.append(token)
             elif char in lexicon.digits:
                 token = tokenize_number(line_index, column_index, line)
-                column_index = token.column_end_index + 1
-                tokens.append(token)
             elif char in lexicon.arithmetic_operators_beginning:
                 token = tokenize_arithmetic_op(line_index, column_index, line)
-                column_index = token.column_end_index + 1
-                tokens.append(token)
             elif char in lexicon.relational_operators_beginning:
                 token = tokenize_relational_op(line_index, column_index, line)
-                column_index = token.column_end_index + 1
-                tokens.append(token)
             elif char in lexicon.logical_operators_beginning:
                 token = tokenize_logical_op(line_index, column_index, line)
-                column_index = token.column_end_index + 1
-                tokens.append(token)
             elif char in lexicon.common_relational_logical:
                 token = tokenize_relational_or_logical_op(line_index, column_index, line)
-                column_index = token.column_end_index + 1
-                tokens.append(token)
             elif letter.match(line[column_index]):
                 token = tokenize_id_or_word(line_index, column_index, line)
-                column_index = token.column_end_index + 1
-                tokens.append(token)
-            else:
-                column_index += 1
+            column_index = token.column_end_index + 1
+            tokens.append(token)
         column_index = 0 
             
     return tokens
