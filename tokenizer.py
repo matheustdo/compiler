@@ -101,10 +101,10 @@ def tokenize_logical_op(line_index, column_index, line):
 This function chooses which tokenize function should be called to get a relational or logical operator.
 '''
 def tokenize_relational_or_logical_op(line_index, column_index, line):
-    relational_or_logical_op = line[column_index]
-    end_index = column_index
+    char = line[column_index]
+    next_char = line[column_index + 1]
 
-    if relational_or_logical_op + line[end_index + 1] in lexicon.relational_operators_extended:
+    if char + next_char in lexicon.relational_operators_extended:
         return tokenize_relational_op(line_index, column_index, line)
 
     return tokenize_logical_op(line_index, column_index, line)
@@ -139,6 +139,18 @@ def tokenize_string(line_index, column_index, line):
     return Token(string, 'string_error', line_index, column_index, end_index)
 
 '''
+This function chooses which tokenize function should be called to get an arithmetic operator or a comment.
+'''
+def tokenize_arithmetic_or_comment(line_index, column_index, line, input_lines):
+    char = line[column_index]
+    next_char = line[column_index + 1]
+    
+    if char + next_char in lexicon.comment_extended:
+        return Token(char + next_char, 'comment', line_index, column_index, column_index + 1)
+    else:
+        return tokenize_arithmetic_op(line_index, column_index, line)
+
+'''
 This function tokenizes input lines and returns an array containing generated tokens.
 '''
 def get_tokens(input_lines): 
@@ -163,16 +175,20 @@ def get_tokens(input_lines):
                 token = tokenize_relational_op(line_index, column_index, line)
             elif char in lexicon.logical_operators_beginning:
                 token = tokenize_logical_op(line_index, column_index, line)
-            elif char in lexicon.common_relational_logical:
-                token = tokenize_relational_or_logical_op(line_index, column_index, line)
             elif char in lexicon.string_delimiter:
                 token = tokenize_string(line_index, column_index, line)
+            elif char in lexicon.common_relational_logical:
+                token = tokenize_relational_or_logical_op(line_index, column_index, line)
+            elif char in lexicon.common_arithmetic_comment:
+                token = tokenize_arithmetic_or_comment(line_index, column_index, line, input_lines)
             elif letter.match(line[column_index]):
                 token = tokenize_id_or_word(line_index, column_index, line)
 
             line_index = token.line_index
             column_index = token.column_end_index + 1
-            if not token.lexeme.isspace():
+
+            # Add the token to tokens list only if its lexeme is not a blank space or a comment.
+            if not token.lexeme.isspace() and token.type != 'comment':
                 tokens.append(token)
 
         line_index += 1

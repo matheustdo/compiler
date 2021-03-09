@@ -26,6 +26,8 @@ logical_operators_beginning = ['&', '|']
 
 logical_operators_extended = ['&&', '||', '!']
 
+comment_extended = ['//', '/*', '*/']
+
 common_arithmetic_comment = '/'
 
 common_relational_logical = '!'
