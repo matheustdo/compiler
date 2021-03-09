@@ -18,10 +18,13 @@ for valid_file in valid_files:
 
     # generate output content
     tokens = tokenizer.get_tokens(input_lines)
+    tokens_length = len(tokens)
     output_content = ''
     
-    for token in tokens:
-        output_content += str(token) + '\n'
+    for token_index, token in enumerate(tokens):
+        output_content += str(token)
+        if token_index + 1 < tokens_length:
+            output_content += '\n'
 
     # create and write an output file
     filer.write_file(output_path, output_prefix + valid_file[len(input_prefix):], output_content)
