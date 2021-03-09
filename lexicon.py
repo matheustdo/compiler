@@ -29,3 +29,9 @@ logical_operators_extended = ['&&', '||', '!']
 common_arithmetic_comment = '/'
 
 common_relational_logical = '!'
+
+string_delimiter = chr(34)
+
+symbol = r'[\x20-\x21\x23-\x7E]'
+
+letter_digit_symbol = r'[a-zA-Z0-9\x20-\x21\x23-\x7E]'

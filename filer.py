@@ -4,8 +4,6 @@ This file contains aux functions to manage files.
 import os
 import re
 
-file_format = re.compile(r'entrada[0-9]+.txt')
-
 '''
 This function inits the output folder if it is not existant.
 '''
@@ -14,9 +12,9 @@ def init_output_folder(path_name):
         os.mkdir(path_name)
         
 '''
-This function receives the input folder path name and returns a list containing valid input files.
+This function receives the input folder path name, the filename prefix and returns a list containing valid input files.
 '''
-def get_input_files(path_name):
+def get_input_files(path_name, prefix_name):
     if not os.path.exists(path_name):
         print('The directory input/ does not exists.')
 
@@ -24,7 +22,7 @@ def get_input_files(path_name):
     valid_files = []
 
     for entry in entries:
-        if os.path.isfile(path_name + entry) and file_format.match(entry): 
+        if os.path.isfile(path_name + entry) and re.match('entrada[0-9]+.txt', entry): 
             valid_files.append(entry)
     
     return valid_files

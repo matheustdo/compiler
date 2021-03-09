@@ -7,4 +7,4 @@ class Token:
         self.column_end_index = column_end_index
     
     def __str__(self):
-        return '< ' + self.lexeme + ', ' + self.type + ', ' + str(self.line_index + 1) + ', ' + str(self.column_begin_index + 1) + ', ' + str(self.column_end_index + 1) + ' >'
+        return str(self.line_index + 1) + '\t' + self.type  + '\t'+ self.lexeme
