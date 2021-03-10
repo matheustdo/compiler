@@ -137,18 +137,16 @@ def ignore_comment(line_index, column_index, init, input_lines):
         return Token('', 'comment', line_index, end_line_index, column_index, len(input_lines[line_index]) - 1)
 
     end_reached = False
-    comment = init
+    
     while end_line_index < len(input_lines) and not end_reached:  
         line = input_lines[end_line_index]
 
         while end_column_index < len(line) and not end_reached:  
             char = line[end_column_index]
-            comment += char
 
             if char == '*' and end_column_index + 1 < len(line):
                 next_char = line[end_column_index + 1]
                 if next_char == '/':
-                    comment += next_char
                     end_reached = True
                     end_column_index += 1
 
@@ -158,7 +156,10 @@ def ignore_comment(line_index, column_index, init, input_lines):
             end_line_index += 1
             end_column_index = 0
 
-    return Token(comment, 'comment', line_index, end_line_index, column_index, end_column_index)
+    if end_reached:
+        return Token('', 'comment', line_index, end_line_index, column_index, end_column_index)
+    
+    return Token('', 'comment_error', line_index, end_line_index, column_index, end_column_index)
 
 
 '''
@@ -195,10 +196,14 @@ def get_tokens(input_lines):
 
     while line_index < len(input_lines):  
         line = input_lines[line_index]
-
+        print(line)
+        
         while column_index < len(line):
             char = line[column_index]
             token = Token(char, 'invalid_symbol', line_index, line_index, column_index, column_index)
+
+            print('----')
+            print("[" + str(line_index) + "][" + str(column_index) + "]")
 
             if char in lexicon.delimiters:
                 token = tokenize_delimiter(line_index, column_index, line[column_index])
@@ -219,14 +224,18 @@ def get_tokens(input_lines):
             elif letter.match(line[column_index]):
                 token = tokenize_id_or_word(line_index, column_index, line)
 
-            line_index = token.line_end_index
-            column_index = token.column_end_index + 1
-
             # Add the token to tokens list only if its lexeme is not a blank space or a comment.
-            if not token.lexeme.isspace() and token.type != 'commenat':
+            if not token.lexeme.isspace() and token.type != '_comment':
                 tokens.append(token)
+            
+            column_index = token.column_end_index + 1
+            
+            # if the token index was changed, the columns loop should be broke.
+            if line_index != token.line_end_index:
+                line_index = token.line_end_index
+                break
 
         line_index += 1
         column_index = 0 
-        
+    
     return tokens
