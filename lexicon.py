@@ -1,7 +1,7 @@
 '''
 This file contains constants of the language lexicon.
 '''
-reserved_words = ['var', 'const', 'typedef', 'struct', 'extends', 'procedure',
+keywords = ['var', 'const', 'typedef', 'struct', 'extends', 'procedure',
                  'function', 'start', 'return', 'if', 'else', 'then', 'while',
                  'read', 'print', 'int', 'real', 'boolean', 'string', 'true',
                  'false', 'global', 'local']

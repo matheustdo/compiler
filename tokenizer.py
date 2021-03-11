@@ -4,6 +4,7 @@ This file has all needed functions to tokenize elements.
 import re
 import lexicon
 from token import Token
+from codes import Code
 
 letter = re.compile(lexicon.letter)
 letter_digit_underscore = re.compile(lexicon.letter_digit_underscore)
@@ -30,31 +31,31 @@ def tokenize_number(line_index, column_index, line):
 
     # If the number contains a "dot", it should have decimal numbers.
     if dot_found and not decimal_inserted:
-        return Token(number, 'number_error', line_index, line_index, column_index, end_column_index)
+        return Token(number, Code.MF_NUMBER, line_index, line_index, column_index, end_column_index)
     else:
-        return Token(number, 'number', line_index, line_index, column_index, end_column_index)
+        return Token(number, Code.NUMBER, line_index, line_index, column_index, end_column_index)
 
 '''
-This function converts an id or a word into a token and returns its token.
+This function converts an id or a keyword into a token and returns its token.
 '''
-def tokenize_id_or_word(line_index, column_index, line):
-    id_or_word = line[column_index]
+def tokenize_id_or_keyword(line_index, column_index, line):
+    id_or_keyword = line[column_index]
     end_column_index = column_index
 
     while end_column_index + 1 < len(line) and letter_digit_underscore.match(line[end_column_index + 1]):
-        id_or_word += line[end_column_index + 1]
+        id_or_keyword += line[end_column_index + 1]
         end_column_index += 1
 
-    if id_or_word in lexicon.reserved_words:
-        return Token(id_or_word, 'word', line_index, line_index, column_index, end_column_index)
+    if id_or_keyword in lexicon.keywords:
+        return Token(id_or_keyword, Code.KEYWORD, line_index, line_index, column_index, end_column_index)
     else:
-        return Token(id_or_word, 'identifier', line_index, line_index, column_index, end_column_index)
+        return Token(id_or_keyword, Code.IDENTIFIER, line_index, line_index, column_index, end_column_index)
 
 '''
 This functions tokenizes a delimiter and returns its token.
 '''
 def tokenize_delimiter(line_index, column_index, delimiter): 
-    return Token(delimiter, 'delimiter', line_index, line_index, column_index, column_index)
+    return Token(delimiter, Code.DELIMITER, line_index, line_index, column_index, column_index)
 
 '''
 This functions tokenizes an arithmetic operator and returns its token.
@@ -63,11 +64,11 @@ def tokenize_arithmetic_op(line_index, column_index, line):
     arithmetic_op = line[column_index]
     end_column_index = column_index
     
-    if arithmetic_op + line[end_column_index + 1] in lexicon.arithmetic_operators_extended:
+    if end_column_index + 1 < len(line) and arithmetic_op + line[end_column_index + 1] in lexicon.arithmetic_operators_extended:
         arithmetic_op += line[end_column_index + 1] 
         end_column_index += 1
 
-    return Token(arithmetic_op, 'arithmetic_op', line_index, line_index, column_index, end_column_index)
+    return Token(arithmetic_op, Code.OP_ARITHMETIC, line_index, line_index, column_index, end_column_index)
 
 '''
 This functions tokenizes a relational operator and returns its token.
@@ -76,11 +77,11 @@ def tokenize_relational_op(line_index, column_index, line):
     relational_op = line[column_index]
     end_column_index = column_index
     
-    if relational_op + line[end_column_index + 1] in lexicon.relational_operators_extended:
+    if end_column_index + 1 < len(line) and relational_op + line[end_column_index + 1] in lexicon.relational_operators_extended:
         relational_op += line[end_column_index + 1] 
         end_column_index += 1
 
-    return Token(relational_op, 'relational_op', line_index, line_index, column_index, end_column_index)
+    return Token(relational_op, Code.OP_RELATIONAL, line_index, line_index, column_index, end_column_index)
 
 '''
 This functions tokenizes a logical operator and returns its token.
@@ -89,13 +90,13 @@ def tokenize_logical_op(line_index, column_index, line):
     logical_op = line[column_index]
     end_column_index = column_index
     
-    if logical_op + line[end_column_index + 1] in lexicon.logical_operators_extended:
+    if end_column_index + 1 < len(line) and logical_op + line[end_column_index + 1] in lexicon.logical_operators_extended:
         logical_op += line[end_column_index + 1] 
         end_column_index += 1
     elif not logical_op in lexicon.common_relational_logical:
-        return Token(logical_op, 'logical_op_error', line_index, line_index, column_index, end_column_index)
+        return Token(logical_op, Code.MF_OPERATOR, line_index, line_index, column_index, end_column_index)
 
-    return Token(logical_op, 'logical_op', line_index, line_index, column_index, end_column_index)
+    return Token(logical_op, Code.OP_LOGICAL, line_index, line_index, column_index, end_column_index)
 
 '''
 This function tokenizes a string and returns its token.
@@ -122,19 +123,21 @@ def tokenize_string(line_index, column_index, line):
             invalid_symbol_found = True
 
     if end_found and not invalid_symbol_found:
-        return Token(string, 'string', line_index, line_index, column_index, end_column_index)
+        return Token(string, Code.STRING, line_index, line_index, column_index, end_column_index)
 
-    return Token(string, 'string_error', line_index, line_index, column_index, end_column_index)
+    return Token(string, Code.MF_STRING, line_index, line_index, column_index, end_column_index)
 
 '''
 This function ignores a comment and returns a token without lexeme to save performance.
 '''
 def ignore_comment(line_index, column_index, init, input_lines):
+    comment = init
     end_line_index = line_index
     end_column_index = column_index + 2
 
     if init == '//':
-        return Token('', 'comment', line_index, end_line_index, column_index, len(input_lines[line_index]) - 1)
+        comment = input_lines[end_line_index][column_index:]
+        return Token(comment, Code.COMMENT, line_index, end_line_index, column_index, len(input_lines[line_index]) - 1)
 
     end_reached = False
     
@@ -143,10 +146,12 @@ def ignore_comment(line_index, column_index, init, input_lines):
 
         while end_column_index < len(line) and not end_reached:  
             char = line[end_column_index]
+            comment += char
 
             if char == '*' and end_column_index + 1 < len(line):
                 next_char = line[end_column_index + 1]
                 if next_char == '/':
+                    comment += next_char
                     end_reached = True
                     end_column_index += 1
 
@@ -157,9 +162,9 @@ def ignore_comment(line_index, column_index, init, input_lines):
             end_column_index = 0
 
     if end_reached:
-        return Token('', 'comment', line_index, end_line_index, column_index, end_column_index)
+        return Token(comment, Code.COMMENT, line_index, end_line_index, column_index, end_column_index)
     
-    return Token('', 'comment_error', line_index, end_line_index, column_index, end_column_index)
+    return Token(comment, Code.MF_COMMENT, line_index, end_line_index, column_index, end_column_index)
 
 
 '''
@@ -167,9 +172,9 @@ This function chooses which tokenize function should be called to get a relation
 '''
 def tokenize_relational_or_logical_op(line_index, column_index, line):
     char = line[column_index]
-    next_char = line[column_index + 1]
 
-    if char + next_char in lexicon.relational_operators_extended:
+    # if the current char and the next is a complete relational operator
+    if column_index + 1 < len(line) and char + line[column_index + 1] in lexicon.relational_operators_extended:
         return tokenize_relational_op(line_index, column_index, line)
 
     return tokenize_logical_op(line_index, column_index, line)
@@ -179,13 +184,13 @@ This function chooses which tokenize function should be called to get an arithme
 '''
 def tokenize_arithmetic_or_comment(line_index, column_index, line, input_lines):
     char = line[column_index]
-    next_char = line[column_index + 1]
     
-    if char + next_char in lexicon.comment_extended:
-        return ignore_comment(line_index, column_index, char + next_char, input_lines)
+    # if the current char and the next is a comment initialization
+    if column_index + 1 < len(line) and char + line[column_index + 1] in lexicon.comment_extended:
+        return ignore_comment(line_index, column_index, char + line[column_index + 1], input_lines)
     else:
         return tokenize_arithmetic_op(line_index, column_index, line)
-
+        
 '''
 This function tokenizes input lines and returns an array containing generated tokens.
 '''
@@ -196,14 +201,10 @@ def get_tokens(input_lines):
 
     while line_index < len(input_lines):  
         line = input_lines[line_index]
-        print(line)
         
         while column_index < len(line):
             char = line[column_index]
-            token = Token(char, 'invalid_symbol', line_index, line_index, column_index, column_index)
-
-            print('----')
-            print("[" + str(line_index) + "][" + str(column_index) + "]")
+            token = Token(char, Code.INVALID_SYMBOL, line_index, line_index, column_index, column_index)
 
             if char in lexicon.delimiters:
                 token = tokenize_delimiter(line_index, column_index, line[column_index])
@@ -222,10 +223,10 @@ def get_tokens(input_lines):
             elif char in lexicon.common_arithmetic_comment:
                 token = tokenize_arithmetic_or_comment(line_index, column_index, line, input_lines)
             elif letter.match(line[column_index]):
-                token = tokenize_id_or_word(line_index, column_index, line)
+                token = tokenize_id_or_keyword(line_index, column_index, line)
 
             # Add the token to tokens list only if its lexeme is not a blank space or a comment.
-            if not token.lexeme.isspace() and token.type != '_comment':
+            if not token.lexeme.isspace() and token.code != Code.COMMENT:
                 tokens.append(token)
             
             column_index = token.column_end_index + 1
