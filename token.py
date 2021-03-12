@@ -1,3 +1,6 @@
+'''
+This class represents the token.
+'''
 class Token:
     def __init__(self, lexeme, code, line_begin_index, line_end_index, column_begin_index, column_end_index):
         self.lexeme = lexeme

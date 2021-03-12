@@ -1,6 +1,7 @@
 '''
 This file contains constants of the language lexicon.
 '''
+
 keywords = ['var', 'const', 'typedef', 'struct', 'extends', 'procedure',
                  'function', 'start', 'return', 'if', 'else', 'then', 'while',
                  'read', 'print', 'int', 'real', 'boolean', 'string', 'true',
