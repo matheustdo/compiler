@@ -27,7 +27,7 @@ for valid_file in valid_files:
     
     for token_index, token in enumerate(tokens):
         output_content += str(token)
-        if token.code == Code.MF_COMMENT or token.code == Code.MF_NUMBER or token.code == Code.MF_OPERATOR or token.code == Code.MF_STRING:
+        if token.code == Code.INVALID_SYMBOL or token.code == Code.MF_COMMENT or token.code == Code.MF_NUMBER or token.code == Code.MF_OPERATOR or token.code == Code.MF_STRING:
             errors_amount += 1
 
         if token_index + 1 < tokens_length:
