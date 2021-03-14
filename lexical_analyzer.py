@@ -13,7 +13,6 @@ filer.init_output_folder(output_path)
 
 for valid_file in valid_files:
     # read the input file
-    input_file = open(input_path + valid_file, "r")
     input_lines = filer.get_file_lines(input_path, valid_file)
 
     # generate output content

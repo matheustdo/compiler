@@ -107,20 +107,18 @@ def tokenize_string(line_index, column_index, line):
     end_found = False
     invalid_symbol_found = False
 
-    while end_column_index + 1 < len(line) and not end_found and not invalid_symbol_found:
+    while end_column_index + 1 < len(line) and not end_found:
         char = line[end_column_index + 1]
-
-        if letter_digit_symbol.match(char):
+        
+        # If a quotation mark is found, the last char is verified, and if it is a backslash, the string is not ended.
+        if char in lexicon.string_delimiter and line[end_column_index] != chr(92):
+            end_found = True
+        elif not letter_digit_symbol.match(char):
+            invalid_symbol_found = True 
+        if char != '\n':
             string += char
-            end_column_index += 1
-        elif char in lexicon.string_delimiter:
-            # If a quotation mark is found, the last char is verified, and if it is a backslash, the string is not ended.
-            if line[end_column_index] != chr(92):
-                end_found = True
-            string += char
-            end_column_index += 1
-        else:
-            invalid_symbol_found = True
+        end_column_index += 1
+        
 
     if end_found and not invalid_symbol_found:
         return Token(string, Code.STRING, line_index, line_index, column_index, end_column_index)
