@@ -111,8 +111,9 @@ def tokenize_string(line_index, column_index, line):
         char = line[end_column_index + 1]
         
         # If a quotation mark is found, the last char is verified, and if it is a backslash, the string is not ended.
-        if char in lexicon.string_delimiter and line[end_column_index] != chr(92):
-            end_found = True
+        if char in lexicon.string_delimiter:
+            if line[end_column_index] != chr(92):
+                end_found = True
         elif not letter_digit_symbol.match(char):
             invalid_symbol_found = True 
         if char != '\n':
