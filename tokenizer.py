@@ -153,7 +153,6 @@ def ignore_comment(line_index, column_index, init, input_lines):
                 if next_char == '/':
                     comment += next_char
                     end_reached = True
-                    end_column_index += 1
 
             end_column_index += 1
 
@@ -198,9 +197,11 @@ def get_tokens(input_lines):
     tokens = []
     line_index = 0
     column_index = 0
+    line_index_changed = False
 
     while line_index < len(input_lines):  
         line = input_lines[line_index]
+        line_index_changed = False
         
         while column_index < len(line):
             char = line[column_index]
@@ -225,11 +226,6 @@ def get_tokens(input_lines):
             elif letter.match(line[column_index]):
                 token = tokenize_id_or_keyword(line_index, column_index, line)
             
-            if token.code == Code.COMMENT and token.line_begin_index == 5:
-                print(token)
-                print(token.column_end_index)
-                print(token.line_end_index)
-
             # Add the token to tokens list only if its lexeme is not a blank space or a comment.
             if not token.lexeme.isspace() and token.code != Code.COMMENT:
                 tokens.append(token)
@@ -239,9 +235,12 @@ def get_tokens(input_lines):
             # if the token index was changed, the columns loop should be broke.
             if line_index != token.line_end_index:
                 line_index = token.line_end_index
+                line_index_changed = True
                 break
 
-        line_index += 1
-        column_index = 0 
+        # indexes should be changed only if the line_index was not changed on the last column loop.
+        if not line_index_changed:
+            line_index += 1
+            column_index = 0 
     
     return tokens
