@@ -224,6 +224,11 @@ def get_tokens(input_lines):
                 token = tokenize_arithmetic_or_comment(line_index, column_index, line, input_lines)
             elif letter.match(line[column_index]):
                 token = tokenize_id_or_keyword(line_index, column_index, line)
+            
+            if token.code == Code.COMMENT and token.line_begin_index == 5:
+                print(token)
+                print(token.column_end_index)
+                print(token.line_end_index)
 
             # Add the token to tokens list only if its lexeme is not a blank space or a comment.
             if not token.lexeme.isspace() and token.code != Code.COMMENT:
