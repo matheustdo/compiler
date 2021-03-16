@@ -24,23 +24,15 @@ Reserved words | var, const, typedef, struct, extends, procedure, function, star
 Identifiers | letter(letter \| digit \| _ ) *
 Numbers | Digit+(.Digit+))?
 Digit | [0-9]
---- | --- |
 Letter | [a-z] \| [A-Z]
---- | --- |
 Arithmetic operator | + - * / ++ --
---- | --- |
 Relational operator | == != > >= < <= =
---- | --- |
 Logical operator | && \|\| !
---- | --- |
 Comment delimiters | // This is a comment
                    | /* This is
                    | a comment */
---- | --- |
 Delimiters | ; , ( ) { } [ ] .
---- | --- |
 String | " ( letter \| digit \| symbol \| \" )* "
---- | --- |
 Symbol | ASCII code from 32 to 126 (except ASCII 34)
 
 ### About
