@@ -28,9 +28,7 @@ Letter | [a-z] \| [A-Z]
 Arithmetic operator | + - * / ++ --
 Relational operator | == != > >= < <= =
 Logical operator | && \|\| !
-Comment delimiters | // This is a comment
-                   | /* This is
-                   | a comment */
+Comment delimiters | // This is a comment<br />/* This is<br />a comment */
 Delimiters | ; , ( ) { } [ ] .
 String | " ( letter \| digit \| symbol \| \" )* "
 Symbol | ASCII code from 32 to 126 (except ASCII 34)
