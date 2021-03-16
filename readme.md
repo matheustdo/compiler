@@ -18,12 +18,11 @@ python lexical_analyzer.py
 ### Lexical structure table
 The analyzer follows the  lexical structure below:
 
+Type | Format
+--- | --- |
 Reserved words | var, const, typedef, struct, extends, procedure, function, start, return, if, else, then, while, read, print, int, real, boolean, string, true, false, global, local |
---- | --- |
 Identifiers | letter(letter \| digit \| _ ) *
---- | --- |
 Numbers | Digit+(.Digit+))?
---- | --- |
 Digit | [0-9]
 --- | --- |
 Letter | [a-z] \| [A-Z]
