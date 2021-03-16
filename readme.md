@@ -18,6 +18,8 @@ or
 python lexical_analyzer.py
 ```
 
+The output files are created on 'output/' folder, located at the root.
+
 ### Lexical structure table
 The analyzer follows the  lexical structure below:
 
