@@ -3,10 +3,13 @@ This code was made using python to learn about lexycal analyzis.
 
 ### How to use
 The main code is at 'lexical_analyzer.py' file.
-To execute, you should have python 3 instaled and run the followed command:
+
+A folder named as 'input/' must be created at the root path, containing the input files, which are named as 'entradaXYZ.txt', where 'XYZ" represents an integer value.
+
+To execute the lexical analyzer you should have python 3 instaled at your machine, and run the following command:
 
 ```bash
-python lexical_analyzer.py
+python3 lexical_analyzer.py
 ```
 
 or
