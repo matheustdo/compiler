@@ -2,8 +2,9 @@
 Main compiler code:
 '''
 from src.util import filer
-import tokenizer
 from src.model.codes import Code
+from src.controller import lexer
+from src.controller import parser
 
 input_path = 'input/'
 output_path = 'output/'
@@ -20,10 +21,11 @@ for valid_file in valid_files:
     input_lines = filer.get_file_lines(input_path, valid_file)
 
     # generate output content
-    tokens = tokenizer.get_tokens(input_lines)
+    tokens = lexer.get_tokens(input_lines)
     tokens_length = len(tokens)
     output_content = ''
     errors_amount = 0
+    parser.parse_tokens(tokens)
     
     for token_index, token in enumerate(tokens):
         output_content += str(token)

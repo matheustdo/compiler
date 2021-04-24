@@ -1,5 +1,5 @@
 '''
-This file has all needed functions to tokenize elements.
+This file has all needed functions to tokenize and lexer elements.
 '''
 import re
 from src.definitions import lexicon
