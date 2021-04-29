@@ -2,39 +2,39 @@
 This file contains constants of the language lexicon.
 '''
 
-keywords = ['var', 'const', 'typedef', 'struct', 'extends', 'procedure',
+KEYWORDS = ['var', 'const', 'typedef', 'struct', 'extends', 'procedure',
                  'function', 'start', 'return', 'if', 'else', 'then', 'while',
                  'read', 'print', 'int', 'real', 'boolean', 'string', 'true',
                  'false', 'global', 'local']
 
-digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-letter = r'[a-zA-Z]'
+LETTER = r'[a-zA-Z]'
 
-letter_digit_underscore = r'[a-zA-Z0-9_]'
+LETTER_DIGIT_UNDERSCORE = r'[a-zA-Z0-9_]'
 
-delimiters = [';', ',', '(', ')', '{', '}', '[', ']', '.']
+DELIMITERS = [';', ',', '(', ')', '{', '}', '[', ']', '.']
 
-arithmetic_operators_beginning = ['+', '-', '*']
+ARITHMETIC_OPERATORS_BEGINNING = ['+', '-', '*']
 
-arithmetic_operators_extended = ['++', '--']
+ARITHMETIC_OPERATORS_EXTENDED = ['++', '--']
 
-relational_operators_beginning = ['<', '>', '=',]
+RELATIONAL_OPERATORS_BEGINNING = ['<', '>', '=',]
 
-relational_operators_extended = ['<=', '>=', '==', '!=']
+RELATIONAL_OPERATORS_EXTENDED = ['<=', '>=', '==', '!=']
 
-logical_operators_beginning = ['&', '|']
+LOGICAL_OPERATORS_BEGGINING = ['&', '|']
 
-logical_operators_extended = ['&&', '||', '!']
+LOGICAL_OPERATORS_EXTENDED = ['&&', '||', '!']
 
-comment_extended = ['//', '/*', '*/']
+COMMENT_EXTENDED = ['//', '/*', '*/']
 
-common_arithmetic_comment = '/'
+COMMOM_ARITHMETIC_COMMENT = '/'
 
-common_relational_logical = '!'
+COMMOM_RELATIONAL_LOGICAL = '!'
 
-string_delimiter = chr(34)
+STRING_DELIMITER = chr(34)
 
-symbol = r'[\x20-\x21\x23-\x7E]'
+SYMBOL = r'[\x20-\x21\x23-\x7E]'
 
-letter_digit_symbol = r'[a-zA-Z0-9\x20-\x21\x23-\x7E]'
+LETTER_DIGIT_SYMBOL = r'[a-zA-Z0-9\x20-\x21\x23-\x7E]'

@@ -22,7 +22,7 @@ def get_input_files(path_name, prefix_name):
     valid_files = []
 
     for entry in entries:
-        if os.path.isfile(path_name + entry) and re.match('entrada[0-9]+.txt', entry): 
+        if os.path.isfile(path_name + entry) and re.match(prefix_name + '[0-9]+.txt', entry): 
             valid_files.append(entry)
     
     return valid_files

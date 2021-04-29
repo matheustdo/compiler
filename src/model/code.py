@@ -1,5 +1,5 @@
 '''
-This enum contains codes of lexeme types.
+This enum contains codes of lexical types.
 '''
 from enum import Enum
 
@@ -19,4 +19,4 @@ class Code(Enum):
     MF_COMMENT = 'CoMF'
     MF_OPERATOR = 'OpMF'
     MF_STRING = 'CMF'
-
+    MF_SYNTAX = 'SMF'

@@ -11,4 +11,4 @@ class Token:
         self.column_end_index = column_end_index
     
     def __str__(self):
-        return str(self.line_begin_index + 1) + '  ' + self.code.value  + '  '+ self.lexeme
+        return str(self.line_begin_index + 1) + '  ' + self.code.value  + '  ' + self.lexeme
