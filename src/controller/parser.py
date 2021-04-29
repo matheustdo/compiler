@@ -1,3 +1,6 @@
+from src.model.error_token import ErrorToken
+from src.model.code import Code
+
 '''
 This class does the iteration on tokens array and the syntactic analysis.
 '''
@@ -5,15 +8,14 @@ class Parser:
     def __init__(self, lexical_tokens):
         self.lexical_tokens = lexical_tokens
         self.tokens_index = 0
+        self.token = None
+        self.syntactic_tokens = []
 
         if len(lexical_tokens) > 0:
             self.token = lexical_tokens[0]
-            self.syntactic_tokens = [lexical_tokens[0]]
-        else:
-            self.token = None
-            self.syntactic_tokens = []
 
     def advance(self):
+        self.syntactic_tokens.append(self.token)
         self.tokens_index += 1
         
         if len(self.lexical_tokens) > 0:
@@ -21,24 +23,99 @@ class Parser:
         else:
             self.token = None
 
-    def eat(self, lexeme):
+    def eat_lexeme(self, lexeme):
         if self.token and lexeme == self.token.lexeme:
             self.advance()
             return True
+
+        return False
+
+    def eat_code(self, code):
+        if self.token and code == self.token.code:
+            self.advance()
+            return True
+
+        return False
+
+    def eat_type(self):
+        if (self.eat_lexeme('int') or self.eat_lexeme('real') or
+            self.eat_lexeme('boolean') or self.eat_lexeme('string')):
+            return True
+        if self.eat_lexeme('struct') and self.eat_code(Code.IDENTIFIER):
+            return True
+
+        return False
+
+    def add_error(self, expected):
+        error_token = ErrorToken(self.token.line_begin_index, f'Expected `{expected}` and found `{self.token.lexeme}`.')
+        self.syntactic_tokens.append(error_token)
+
+    def add_custom_error(self, message):
+        error_token = ErrorToken(self.token.line_begin_index, message)
+        self.syntactic_tokens.append(error_token)
+
+    def type_def(self):
+        if self.eat_type():
+            if self.eat_code(Code.IDENTIFIER):
+                if not self.eat_lexeme(';'):
+                    self.add_error(';')
+            else:
+                self.add_error('Id')
         else:
-            return False
+            self.add_error('Type.')
+
+    def arrays(self):
+        if self.eat_lexeme('['):
+            self.eat_code(Code.NUMBER) # PROVISORY
+            
+            if self.eat_lexeme(']'):
+                self.arrays()
+            else:
+                self.add_error(']')
+
+    def var_list(self):
+        if self.eat_lexeme(','):
+            if self.eat_code(Code.IDENTIFIER):
+                self.arrays()
+                self.var_list()
+            else:
+                self.add_error('Id')
+
+    def var_decls(self):
+        if self.eat_type():
+            if self.eat_code(Code.IDENTIFIER):
+                self.arrays()
+                self.var_list()
+
+                if not self.eat_lexeme(';'):
+                    self.add_error(';')
+            else:
+                self.add_error('Id')
+            self.var_decls()
+        elif self.eat_lexeme('typedef'):
+            self.type_def()
+
+    def var_block(self):
+        if self.eat_lexeme('{'):
+            self.var_decls()
+
+            if not self.eat_lexeme('}'):
+                self.add_error('}')
+        else:
+            self.add_error('{')
 
     def program(self):
-        """ if parser.current_token().lexeme == 'structs':
-            print('FIRST_STRUCTS')
-        if parser.current_token().lexeme == 'const':
-            print('FIRST_CONST_BLOCK')
-        if parser.current_token().lexeme == 'var':
-            print('FIRST_CONST_BLOCK')
-        if parser.current_token().lexeme == 'procedure':
-            print('FIRST_START_BLOCK')
-        else:
-            parser.add_error('NO START BLOCK HAS FOUND') """
+        if self.eat_lexeme('structs'):
+            print('structs')
+        if self.eat_lexeme('const'):
+            print('const')
+        if self.eat_lexeme('var'):
+            self.var_block()
+        if self.eat_lexeme('procedure'):
+            print('procedure')
+        else:   
+            self.add_custom_error('The procedure `start` has not found.')
 
     def execute(self):
         self.program()
+        
