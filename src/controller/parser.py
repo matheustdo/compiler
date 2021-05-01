@@ -14,6 +14,14 @@ class Parser:
         if len(lexical_tokens) > 0:
             self.token = lexical_tokens[0]
 
+    def add_error(self, expected):
+        error_token = ErrorToken(self.token.line_begin_index, f'Expected `{expected}` and found `{self.token.lexeme}`.')
+        self.syntactic_tokens.append(error_token)
+
+    def add_custom_error(self, message):
+        error_token = ErrorToken(self.token.line_begin_index, message)
+        self.syntactic_tokens.append(error_token)
+
     def advance(self):
         self.syntactic_tokens.append(self.token)
         self.tokens_index += 1
@@ -46,13 +54,114 @@ class Parser:
 
         return False
 
-    def add_error(self, expected):
-        error_token = ErrorToken(self.token.line_begin_index, f'Expected `{expected}` and found `{self.token.lexeme}`.')
-        self.syntactic_tokens.append(error_token)
+    def eat_first_expr(self):
+        if (self.eat_lexeme('!') or self.eat_code(Code.NUMBER) or 
+            self.eat_code(Code.STRING) or self.eat_lexeme('true') or
+            self.eat_lexeme('false')):
+            return True
+        if self.eat_code(Code.IDENTIFIER) and self.eat_lexeme('('):
+            return True
 
-    def add_custom_error(self, message):
-        error_token = ErrorToken(self.token.line_begin_index, message)
-        self.syntactic_tokens.append(error_token)
+        return False
+
+    def unary(self):
+        if self.eat_lexeme('!'): 
+            self.unary()
+        elif not self.eat_first_expr():
+            self.add_error('Value')            
+
+    def mult_(self):
+        if self.eat_lexeme('*'):
+            self.unary()
+            self.mult_()
+        elif self.eat_lexeme('/'):
+            self.unary()
+            self.mult_()
+
+    def add_(self):
+        if self.eat_lexeme('+'):
+            if self.eat_first_expr():
+                self.mult_()
+                self.add_()
+            else:
+                self.add_error('Expression')
+        elif self.eat_lexeme('-'):
+            if self.eat_first_expr():
+                self.mult_()
+                self.add_()
+            else:
+                self.add_error('Expression')
+        else:
+            self.mult_()
+
+    def compare_(self):
+        if self.eat_lexeme('<'):
+            if self.eat_first_expr():
+                self.add_()
+                self.compare_()
+            else:
+                self.add_error('Expression')
+        elif self.eat_lexeme('>'):
+            if self.eat_first_expr():
+                self.add_()
+                self.compare_()
+            else:
+                self.add_error('Expression')
+        elif self.eat_lexeme('<='):
+            if self.eat_first_expr():
+                self.add_()
+                self.compare_()
+            else:
+                self.add_error('Expression')
+        elif self.eat_lexeme('>='):
+            if self.eat_first_expr():
+                self.add_()
+                self.compare_()
+            else:
+                self.add_error('Expression')
+        else:
+            self.add_()
+
+    def equate_(self):
+        if self.eat_lexeme('=='):
+            if self.eat_first_expr():
+                self.compare_()
+                self.equate_()
+            else:
+                self.add_error('Expression')
+        elif self.eat_lexeme('!='):
+            if self.eat_first_expr():
+                self.compare_()
+                self.equate_()
+            else:
+                self.add_error('Expression')
+        else:
+            self.compare_()
+
+    def and_(self):
+        if self.eat_lexeme('&&'):
+            if self.eat_first_expr():
+                self.equate_()
+                self.and_()
+            else:
+                self.add_error('Expression')
+        else:
+            self.equate_()
+
+    def or_(self):
+        if self.eat_lexeme('||'):
+            if self.eat_first_expr():
+                self.and_()
+                self.or_()
+            else:
+                self.add_error('Expression')
+        else:
+            self.and_()
+
+
+    def expr(self):
+        if self.eat_first_expr():
+            self.or_()
 
     def type_def(self):
         if self.eat_type():
@@ -66,7 +175,7 @@ class Parser:
 
     def arrays(self):
         if self.eat_lexeme('['):
-            self.eat_code(Code.NUMBER) # PROVISORY
+            self.expr()
             
             if self.eat_lexeme(']'):
                 self.arrays()
@@ -106,13 +215,13 @@ class Parser:
 
     def program(self):
         if self.eat_lexeme('structs'):
-            print('structs')
+            print()
         if self.eat_lexeme('const'):
-            print('const')
+            print()
         if self.eat_lexeme('var'):
             self.var_block()
-        if self.eat_lexeme('procedure'):
-            print('procedure')
+        if self.eat_lexeme(''):
+            print()
         else:   
             self.add_custom_error('The procedure `start` has not found.')
 
