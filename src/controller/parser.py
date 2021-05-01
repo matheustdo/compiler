@@ -56,7 +56,13 @@ class Parser:
 
     def assign(self):
         if self.eat_lexeme('='):
-            self.expr()
+            if self.eat_lexeme(';'):
+                self.add_error(';')  
+            else:
+                self.expr()
+                
+                if self.eat_lexeme(';'):
+                    self.add_error(';')  
         elif self.eat_lexeme('++') or self.eat_lexeme('--'):
             if not self.eat_lexeme(';'):
                 self.add_error(';')  
