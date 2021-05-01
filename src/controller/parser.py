@@ -57,121 +57,151 @@ class Parser:
     def eat_first_expr(self):
         if (self.eat_lexeme('!') or self.eat_code(Code.NUMBER) or 
             self.eat_code(Code.STRING) or self.eat_lexeme('true') or
-            self.eat_lexeme('false')):
-            return True
-        if self.eat_code(Code.IDENTIFIER) and self.eat_lexeme('('):
+            self.eat_lexeme('false') or self.eat_code(Code.IDENTIFIER) or
+            self.eat_lexeme('(')):
             return True
 
         return False
 
-    def unary(self):
-        if self.eat_lexeme('!'): 
-            self.unary()
-        elif not self.eat_first_expr():
-            self.add_error('Value')            
+    def eat_first_assign(self):
+        if (self.eat_lexeme('=') or self.eat_lexeme('++') or
+            self.eat_lexeme('--')):
+            return True
 
-    def mult_(self):
-        if self.eat_lexeme('*'):
-            self.unary()
-            self.mult_()
-        elif self.eat_lexeme('/'):
-            self.unary()
-            self.mult_()
+        return False
 
-    def add_(self):
-        if self.eat_lexeme('+'):
-            if self.eat_first_expr():
-                self.mult_()
-                self.add_()
-            else:
-                self.add_error('Expression')
-        elif self.eat_lexeme('-'):
-            if self.eat_first_expr():
-                self.mult_()
-                self.add_()
-            else:
-                self.add_error('Expression')
+    def assign(self):
+        if self.eat_lexeme('='):
+            self.expr()
+        elif self.eat_lexeme('++') or self.eat_lexeme('--'):
+            if not self.eat_lexeme(';'):
+                self.add_error(';')  
         else:
-            self.mult_()
-
-    def compare_(self):
-        if self.eat_lexeme('<'):
-            if self.eat_first_expr():
-                self.add_()
-                self.compare_()
-            else:
-                self.add_error('Expression')
-        elif self.eat_lexeme('>'):
-            if self.eat_first_expr():
-                self.add_()
-                self.compare_()
-            else:
-                self.add_error('Expression')
-        elif self.eat_lexeme('<='):
-            if self.eat_first_expr():
-                self.add_()
-                self.compare_()
-            else:
-                self.add_error('Expression')
-        elif self.eat_lexeme('>='):
-            if self.eat_first_expr():
-                self.add_()
-                self.compare_()
-            else:
-                self.add_error('Expression')
-        else:
-            self.add_()
-
-    def equate_(self):
-        if self.eat_lexeme('=='):
-            if self.eat_first_expr():
-                self.compare_()
-                self.equate_()
-            else:
-                self.add_error('Expression')
-        elif self.eat_lexeme('!='):
-            if self.eat_first_expr():
-                self.compare_()
-                self.equate_()
-            else:
-                self.add_error('Expression')
-        else:
-            self.compare_()
-
-    def and_(self):
-        if self.eat_lexeme('&&'):
-            if self.eat_first_expr():
-                self.equate_()
-                self.and_()
-            else:
-                self.add_error('Expression')
-        else:
-            self.equate_()
-
-    def or_(self):
-        if self.eat_lexeme('||'):
-            if self.eat_first_expr():
-                self.and_()
-                self.or_()
-            else:
-                self.add_error('Expression')
-        else:
-            self.and_()
+            self.add_error('=, ++, --')
 
 
-    def expr(self):
-        if self.eat_first_expr():
-            self.or_()
-
-    def type_def(self):
-        if self.eat_type():
+    def access(self):
+        if self.eat_lexeme('.'):
             if self.eat_code(Code.IDENTIFIER):
-                if not self.eat_lexeme(';'):
-                    self.add_error(';')
+                self.arrays()
             else:
                 self.add_error('Id')
         else:
-            self.add_error('Type.')
+            self.add_error('.')
+            
+    def accesses(self):
+        if self.eat_lexeme('.'):
+            if self.eat_code(Code.IDENTIFIER):
+                self.arrays()
+                self.accesses()
+            else:
+                self.add_error('Id')
+
+    def args(self):
+        print()
+
+    def id_value(self):
+        if self.eat_lexeme('('):
+            self.args()
+
+            if not self.eat_lexeme(')'):
+                self.add_error(')')
+        else:
+            self.arrays()
+            self.accesses()
+
+    def unary(self):
+        if self.eat_lexeme('!'): 
+            self.unary()
+        elif self.eat_lexeme('local'):
+            self.access()
+        elif self.eat_lexeme('global'):
+            self.access()
+        elif self.eat_code(Code.IDENTIFIER):
+            self.id_value()
+        elif self.eat_lexeme('('):
+            self.expr()
+
+            if not self.eat_lexeme(')'):
+                self.add_error(')')
+        elif not (self.eat_code(Code.NUMBER) or self.eat_code(Code.STRING) or
+            self.eat_lexeme('true') or self.eat_lexeme('false')):
+            self.add_error('{ Num, Str, Boolean }')
+
+    def mult_2(self):
+        if self.eat_lexeme('*'):
+            self.unary()
+            self.mult_2()
+        elif self.eat_lexeme('/'):
+            self.unary()
+            self.mult_2()
+
+    def mult_(self):
+        self.unary()
+        self.mult_2()
+
+    def add_2(self):
+        if self.eat_lexeme('+'):
+            self.mult_()
+            self.add_2()
+        elif self.eat_lexeme('-'):
+            self.mult_()
+            self.add_2()
+
+    def add_(self):
+        self.mult_()
+        self.add_2()
+
+    def compare_2(self):
+        if self.eat_lexeme('<'):
+            self.add_()
+            self.compare_2()
+        elif self.eat_lexeme('>'):
+            self.add_()
+            self.compare_2()
+        elif self.eat_lexeme('<='):
+            self.add_()
+            self.compare_2()
+        elif self.eat_lexeme('>='):
+            self.add_()
+            self.compare_2()
+
+    def compare_(self):
+        self.add_()
+        self.compare_2()
+
+    def equate_2(self):
+        if self.eat_lexeme('=='):
+            self.compare_()
+            self.equate_2()
+        elif self.eat_lexeme('!='):
+            self.compare_()
+            self.equate_2()
+
+    def equate_(self):
+        self.compare_()
+        self.equate_2()
+
+    def and_2(self):
+        if self.eat_lexeme('&&'):
+            self.equate_()
+            self.and_2()
+
+    def and_(self):
+        self.equate_()
+        self.and_2()
+            
+    def or_2(self):
+        if self.eat_lexeme('||'):
+            self.and_()
+            self.or_2()
+
+    def or_(self):
+        self.and_()
+        self.or_2()
+
+    def expr(self):
+        self.or_()
 
     def arrays(self):
         if self.eat_lexeme('['):
@@ -182,6 +212,12 @@ class Parser:
             else:
                 self.add_error(']')
 
+    def var(self):
+        if self.eat_code(Code.IDENTIFIER):
+            self.arrays()
+        else:
+            self.add_error('Id')
+            
     def var_list(self):
         if self.eat_lexeme(','):
             if self.eat_code(Code.IDENTIFIER):
@@ -192,34 +228,41 @@ class Parser:
 
     def var_decls(self):
         if self.eat_type():
-            if self.eat_code(Code.IDENTIFIER):
-                self.arrays()
-                self.var_list()
+            self.var()
+            self.var_list() 
 
-                if not self.eat_lexeme(';'):
-                    self.add_error(';')
+            if self.eat_lexeme(';'):
+                self.var_decls()
             else:
-                self.add_error('Id')
-            self.var_decls()
-        elif self.eat_lexeme('typedef'):
-            self.type_def()
+                self.add_error(';')
+        elif self.eat_lexeme('typedef'): 
+            if self.eat_type():
+                if self.eat_code(Code.IDENTIFIER):
+                    if self.eat_lexeme(';'):
+                        self.var_decls()
+                    else:
+                        self.add_error(';')
+                else:
+                    self.add_error('Id')
+            else:
+                self.add_error('Type')
 
     def var_block(self):
-        if self.eat_lexeme('{'):
-            self.var_decls()
+        if self.eat_lexeme('var'):
+            if self.eat_lexeme('{'):
+                self.var_decls()
 
-            if not self.eat_lexeme('}'):
-                self.add_error('}')
-        else:
-            self.add_error('{')
+                if not self.eat_lexeme('}'):
+                    self.add_error('}')
+            else:
+                self.add_error('{')
 
     def program(self):
         if self.eat_lexeme('structs'):
             print()
         if self.eat_lexeme('const'):
             print()
-        if self.eat_lexeme('var'):
-            self.var_block()
+        self.var_block()
         if self.eat_lexeme(''):
             print()
         else:   
