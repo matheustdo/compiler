@@ -54,22 +54,6 @@ class Parser:
 
         return False
 
-    def eat_first_expr(self):
-        if (self.eat_lexeme('!') or self.eat_code(Code.NUMBER) or 
-            self.eat_code(Code.STRING) or self.eat_lexeme('true') or
-            self.eat_lexeme('false') or self.eat_code(Code.IDENTIFIER) or
-            self.eat_lexeme('(')):
-            return True
-
-        return False
-
-    def eat_first_assign(self):
-        if (self.eat_lexeme('=') or self.eat_lexeme('++') or
-            self.eat_lexeme('--')):
-            return True
-
-        return False
-
     def assign(self):
         if self.eat_lexeme('='):
             self.expr()
