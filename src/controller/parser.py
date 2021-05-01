@@ -103,8 +103,9 @@ class Parser:
             self.args_list()
             
     def args(self):
-        self.expr()
-        self.args_list()
+        if self.token.lexeme != ')':
+            self.expr()
+            self.args_list()
 
     def id_value(self):
         if self.eat_lexeme('('):
