@@ -57,7 +57,7 @@ class Parser:
     def assign(self):
         if self.eat_lexeme('='):
             if self.eat_lexeme(';'):
-                self.add_error(';')  
+                self.add_error('Expected `Expression` and found `;`'.)  
             else:
                 self.expr()
                 
