@@ -97,8 +97,14 @@ class Parser:
             else:
                 self.add_error('Id')
 
+    def args_list(self):
+        if self.eat_lexeme(','):
+            self.expr()
+            self.args_list()
+            
     def args(self):
-        print()
+        self.expr()
+        self.args_list()
 
     def id_value(self):
         if self.eat_lexeme('('):
