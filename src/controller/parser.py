@@ -202,12 +202,13 @@ class Parser:
 
     def arrays(self):
         if self.eat_lexeme('['):
-            self.expr()
+            if not self.eat_lexeme(']'):
+                self.expr()
             
-            if self.eat_lexeme(']'):
-                self.arrays()
-            else:
-                self.add_error(']')
+                if self.eat_lexeme(']'):
+                    self.arrays()
+                else:
+                    self.add_error(']')
 
     def var(self):
         if self.eat_code(Code.IDENTIFIER):
