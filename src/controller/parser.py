@@ -123,7 +123,7 @@ class Parser:
                 self.add_error(')')
         elif not (self.eat_code(Code.NUMBER) or self.eat_code(Code.STRING) or
             self.eat_lexeme('true') or self.eat_lexeme('false')):
-            self.add_error('{ Num, Str, Boolean }')
+            self.add_error('Num`, `Str` or `Boolean')
 
     def mult_2(self):
         if self.eat_lexeme('*'):
