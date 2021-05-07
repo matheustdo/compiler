@@ -1,42 +1,38 @@
 '''
 This file contains the firsts of language grammar.
 '''
-
-# Empty string = {ε}
-def empty_string():
-    return {'ε'}
     
-# <Program> first = first(<Structs>) - {ε} U first(<Const Block>) - {ε} U first(<Var Block>) - {ε} U first(<Start Block>)
+# <Program> first = first(<Structs>) U first(<Const Block>) U first(<Var Block>) U first(<Start Block>)
 def first_program():
-    return first_structs() - empty_string() | first_const_block() - empty_string() | first_var_block() - empty_string() | first_start_block() 
+    return first_structs() | first_const_block() | first_var_block() | first_start_block() 
 
-# <Decls> first = first(<Decl>) U {ε}
+# <Decls> first = first(<Decl>)
 def first_decls():
-    return first_decl() | empty_string()
+    return first_decl()
 
 # <Decl> first = first(<Func Decl>) U first(<Proc Decl>)
 def first_decl():
     return first_func_decl() | first_proc_decl()
 
-# <Structs> first = first(<Struct Block>) U {ε}
+# <Structs> first = first(<Struct Block>) 
 def first_structs():
-    return first_struct_block() | empty_string()
+    return first_struct_block()
 
 # <Struct Block>	first = {struct}
 def first_struct_block():
     return {'struct'}
 
-# <Extends> first = {extends} U {ε}
+# <Extends> first = {extends}
 def first_extends():
-    return {'extends'} | empty_string()
+    return {'extends'} 
 
-# <Const Block> first = {const} U {ε}
+# <Const Block> first = {const}
 def first_const_block():
-    return {'const'} | empty_string()
+    return {'const'}
 
-# <Var Block> first = {var} U {ε}
+# <Var Block> first = {var}
 def first_var_block():
-    return {'var'} | empty_string()
+    return {'var'}
 
 # <Type> first = {int, real, boolean, string, struct}
 def first_type():
@@ -46,9 +42,9 @@ def first_type():
 def first_typedef():
     return {'typedef'}
 
-# <Var Decls> first = first(<Var Decl>) U {ε}
+# <Var Decls> first = first(<Var Decl>)
 def first_var_decls():
-    return first_var_decl() | empty_string()
+    return first_var_decl()
 
 # <Var Decl> first = first(<Type>) U first(<Typedef>) U first(<Stm Scope>) U {id}
 def first_var_decl():
@@ -62,13 +58,13 @@ def first_var_id():
 def first_var():
     return {'id'}
 
-# <Var List> first = {,} U {ε}
+# <Var List> first = {,}
 def first_var_list():
-    return {','} | empty_string()
+    return {','}
 
-# <Const Decls> first = first(<Const Decl>) U {ε}
+# <Const Decls> first = first(<Const Decl>)
 def first_const_decls():
-    return first_const_decl() | empty_string()
+    return first_const_decl()
 
 # <Const Decl> first = first(<Type>) U first(<Typedef>) U first(<Stm Scope>) U {id}
 def first_const_decl():
@@ -94,29 +90,29 @@ def first_decl_atribute():
 def first_array_decl():
     return {'{'}
 
-# <Array Vector> first = {','} U {ε}
+# <Array Vector> first = {','}
 def first_array_vector():
-    return {','} | empty_string()
+    return {','}
 
 # <Array Def> first = first(<Expr>)
 def first_array_def():
     return first_expr()
 
-# <Array Expr> first = {','} U {ε}
+# <Array Expr> first = {','}
 def first_array_expr():
-    return {','} | empty_string()
+    return {','}
 
 # <Array> first = {[}
 def first_array():
     return {'['}
 
-# <Index> first = first<Expr> U {ε}
+# <Index> first = first<Expr>
 def first_index():
-    return first_expr() | empty_string()
+    return first_expr()
 
-# <Arrays> first = first(<Array>) U {ε}
+# <Arrays> first = first(<Array>)
 def first_arrays():
-    return first_array() | empty_string()
+    return first_array()
 
 # <Assign> first = {=, ++, --}
 def first_assign():
@@ -126,17 +122,17 @@ def first_assign():
 def first_access():
     return {'.'}
 
-# <Accesses> first = first(<Access>) U {ε}
+# <Accesses> first = first(<Access>)
 def first_accesses():
-    return first_access() | empty_string()
+    return first_access()
 
-# <Args> first = first(<Expr>) U {ε}
+# <Args> first = first(<Expr>)
 def first_args():
-    return first_expr() | empty_string()
+    return first_expr()
 
-# <Args List> first = {,} U {ε}
+# <Args List> first = {,}
 def first_args_list():
-    return {','} | empty_string()
+    return {','}
 
 # <Func Decl> first = {function}
 def first_func_decl():
@@ -154,41 +150,41 @@ def first_proc_decl():
 def first_param_type():
     return first_type() | {'id'}
 
-# <Params> first = first(<Param>) U {ε}
+# <Params> first = first(<Param>)
 def first_params():
-    return first_param() | empty_string()
+    return first_param()
 
 # <Param> first = first(<Param Type>)
 def first_param():
     return first_param_type()
 
-# <Params List> first = {,} U {ε}
+# <Params List> first = {,}
 def first_params_list():
-    return {','} | empty_string()
+    return {','}
 
-# <Param Arrays> first = {[} U {ε}
+# <Param Arrays> first = {[}
 def first_param_arrays():
-    return {'['} | empty_string()
+    return {'['}
 
-# <Param Mult Arrays> first = {[} U {ε}
+# <Param Mult Arrays> first = {[}
 def first_param_mult_arrays():
-    return {'['} | empty_string()
+    return {'['}
 
 # <Func Block> first = {{}
 def first_func_block():
     return {'{'}
 
-# <Func Stms> first = first(<Func Stm>) U {ε}
+# <Func Stms> first = first(<Func Stm>)
 def first_func_stms():
-    return first_func_stm() | empty_string()
+    return first_func_stm()
 
 # <Func Stm> first = {if, while} U first(<Func Normal Stm>)
 def first_func_stm():
     return {'if', 'while'} | first_func_normal_stm()
 
-# <Else Stm> first = {else} U {ε}
+# <Else Stm> first = {else}
 def first_else_stm():
-    return {'else'} | empty_string()
+    return {'else'}
 
 # <Func Normal Stm> first = {{, ;, return} U first(<Var Stm>)
 def first_func_normal_stm():
@@ -218,49 +214,49 @@ def first_expr():
 def first_or():
     return first_and()
 
-# <Or_> first = {||} U {ε}
+# <Or_> first = {||}
 def first_or_():
-    return {'||'} | empty_string()
+    return {'||'}
 
 # <And> first = first(<Equate>)
 def first_and():
     return first_equate()
 
-# <And_> first = {&&} U {ε}
+# <And_> first = {&&}
 def first_and_():
-    return {'&&'} | empty_string()
+    return {'&&'}
 
 # <Equate> first = first(<Compare>)
 def first_equate():
     return first_compare()
 
-# <Equate_> first = {==, =} U {ε}
+# <Equate_> first = {==, =}
 def first_equate_():
-    return {'==', '!='} | empty_string()
+    return {'==', '!='}
 
 # <Compare> first = first(<Add>)
 def first_compare():
     return first_add()
 
-# <Compare_> first = {<, >, <=, >=} U {ε}
+# <Compare_> first = {<, >, <=, >=}
 def first_compare_():
-    return {'<', '>', '<=', '>='} | empty_string()
+    return {'<', '>', '<=', '>='}
 
 # <Add> first = first(<Mult>)
 def first_add():
     return first_mult()
 
-# <Add_> first = {+, -} U {ε}
+# <Add_> first = {+, -}
 def first_add_():
-    return {'+', '-'} | empty_string()
+    return {'+', '-'}
 
 # <Mult> first = first(<Unary>)
 def first_mult():
     return first_unary()
 
-# <Mult_> first = {*, /} U {ε}
+# <Mult_> first = {*, /}
 def first_mult_():
-    return {'*', '/'} | empty_string()
+    return {'*', '/'}
 
 # <Unary> first = {!} U first(<Value>)
 def first_unary():
@@ -282,33 +278,33 @@ def first_log_expr():
 def first_log_or():
     return first_log_and()
 
-# <Log Or_> first = {||} U {ε}
+# <Log Or_> first = {||}
 def first_log_or_():
-    return {'||'} | empty_string()
+    return {'||'}
 
 # <Log And> first = first(<Log Equate>)
 def first_log_and():
     return first_log_equate()
 
-# <Log And_> first = {&&} U {ε}
+# <Log And_> first = {&&}
 def first_log_and_():
-    return {'&&'} | empty_string()
+    return {'&&'}
 
 # <Log Equate> first = first(<Log Compare>)
 def first_log_equate():
     return first_log_compare()
 
-# <Log Equate_> first = {==, =} U {ε}
+# <Log Equate_> first = {==, =}
 def first_log_equate_():
-    return {'==', '!='} | empty_string()
+    return {'==', '!='}
 
 # <Log Compare> first = first(<Log Unary>)
 def first_log_compare():
     return first_log_unary()
 
-# <Log Compare_> first = {<, >, <=, >=} U {ε}
+# <Log Compare_> first = {<, >, <=, >=}
 def first_log_compare_():
-    return {'<', '>', '<=', '>='} | empty_string()
+    return {'<', '>', '<=', '>='}
 
 # <Log Unary> first = {!} U first(<Log Value>)
 def first_log_unary():
@@ -318,4 +314,3 @@ def first_log_unary():
 def first_log_value():
     return {'num', 'str', 'true', 'false', 'local', 'global', 'id', '('}
 
-print(first_log_expr())

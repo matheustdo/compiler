@@ -1,12 +1,12 @@
-# Lexical Analyzer
-This code was made using python to learn about lexycal analyzis.
+# Compiler
+This code was made using python to learn about formal languages and compilers.
 
 ### How to use
 The main code is at 'compiler.py' file.
 
 A folder named as 'input/' must be created at the root path, containing the input files, which are named as 'entradaXYZ.txt', where 'XYZ" represents an integer value.
 
-To execute the lexical analyzer you should have python 3 instaled at your machine, and run the following command:
+To execute the compiler you should have python 3 instaled at your machine, and run the following command:
 
 ```bash
 python3 compiler.py

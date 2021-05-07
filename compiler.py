@@ -60,4 +60,3 @@ for valid_file in valid_files:
     filer.write_file(OUTPUT_PATH, OUTPUT_PREFIX + valid_file[len(INPUT_PREFIX):], output_content)
 
 print('\033[1;34m> ' + str(len(valid_files)) + ' files were generated on output/.\033[0;0m')
-

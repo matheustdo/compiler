@@ -1,5 +1,6 @@
 from src.model.error_token import ErrorToken
 from src.model.code import Code
+from src.definitions.firsts import *
 
 '''
 This class does the iteration on tokens array and the syntactic analysis.
@@ -44,25 +45,41 @@ class Parser:
             return True
 
         return False
-
+        
     def eat_type(self):
         if (self.eat_lexeme('int') or self.eat_lexeme('real') or
             self.eat_lexeme('boolean') or self.eat_lexeme('string')):
             return True
-        if self.eat_lexeme('struct') and self.eat_code(Code.IDENTIFIER):
-            return True
+        if self.eat_lexeme('struct'):
+            if self.eat_code(Code.IDENTIFIER):
+                return True
+            self.add_error('Id')
+
+        return False
+
+    def verify(self, first):
+        for terminal in first:
+            if terminal == 'id':
+                if self.token.code == Code.IDENTIFIER:
+                    return True
+            elif terminal == 'num':
+                if self.token.code == Code.NUMBER:
+                    return True
+            elif terminal == 'str':
+                if self.token.code == Code.STRING:
+                    return True
+            elif self.token and terminal == self.token.lexeme:
+                return True
 
         return False
 
     def assign(self):
         if self.eat_lexeme('='):
-            if self.eat_lexeme(';'):
-                self.add_error('Expected `Expression` and found `;`.')  
-            else:
+            if self.verify(first_expr()):
                 self.expr()
                 
-                if self.eat_lexeme(';'):
-                    self.add_error(';')  
+            if self.eat_lexeme(';'):
+                self.add_error(';')  
         elif self.eat_lexeme('++') or self.eat_lexeme('--'):
             if not self.eat_lexeme(';'):
                 self.add_error(';')  
@@ -93,7 +110,7 @@ class Parser:
             self.args_list()
             
     def args(self):
-        if self.token.lexeme != ')':
+        if self.verify(first_expr()):
             self.expr()
             self.args_list()
 
@@ -202,13 +219,13 @@ class Parser:
 
     def arrays(self):
         if self.eat_lexeme('['):
-            if not self.eat_lexeme(']'):
+            if self.verify(first_expr()):
                 self.expr()
             
-                if self.eat_lexeme(']'):
-                    self.arrays()
-                else:
-                    self.add_error(']')
+            if self.eat_lexeme(']'):
+                self.arrays()
+            else:
+                self.add_error(']')
 
     def var(self):
         if self.eat_code(Code.IDENTIFIER):
@@ -255,14 +272,34 @@ class Parser:
             else:
                 self.add_error('{')
 
+    def func_block(self):
+        return 1
+
+    def start_block(self): 
+        if self.eat_lexeme('procedure'):
+            if self.eat_lexeme('start'):
+                if self.eat_lexeme('('):
+                    if self.eat_lexeme(')'):
+                        self.func_block()
+                    else:
+                        self.add_error(')')
+                else:
+                    self.add_error('(')
+
+            else:
+                self.add_error('start')
+        else:
+            self.add_error('procedure')
+
     def program(self):
         if self.eat_lexeme('structs'):
             print()
         if self.eat_lexeme('const'):
             print()
         self.var_block()
-        if self.eat_lexeme(''):
-            print()
+
+        if self.verify(first_start_block()):
+            self.start_block()
         else:   
             self.add_custom_error('The procedure `start` has not found.')
 
