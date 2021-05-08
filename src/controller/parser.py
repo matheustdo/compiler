@@ -406,6 +406,19 @@ class Parser:
         else:
             self.add_error('[', follow_array())
 
+    def typedef(self):
+        if self.eat_lexeme('typedef'):
+            if self.eat_type():
+                if self.eat_code(Code.IDENTIFIER):
+                    if not self.eat_lexeme(';'):
+                        self.add_error(';', follow_typedef())
+                else:
+                    self.add_error('Id', follow_typedef())
+            else:
+                self.add_error('type', follow_typedef())
+        else:
+            self.add_error('typedef', follow_typedef())
+
     def var(self):
         if self.eat_code(Code.IDENTIFIER):
             self.arrays()
@@ -432,30 +445,26 @@ class Parser:
         else:
             self.add_error('--`, `Id`, `[`, `(`, `++`, `.` or `=', follow_var_id())
 
-    def var_decls(self):
+    def var_decl(self):
         if self.eat_type():
             self.var()
             self.var_list() 
 
-            if self.eat_lexeme(';'):
-                self.var_decls()
-            else:
+            if not self.eat_lexeme(';'):
                 self.add_error(';', follow_var_decl()) ############## teste
-        elif self.eat_lexeme('typedef'): 
-            if self.eat_type():
-                if self.eat_code(Code.IDENTIFIER):
-                    if self.eat_lexeme(';'):
-                        self.var_decls()
-                    else:
-                        self.add_error(';', follow_var_decl()) ############## teste
-                else:
-                    self.add_error('Id', follow_var_decl()) ############## teste
-            else:
-                self.add_error('Type', follow_var_decl())  ############## teste
+        elif self.verify(first_typedef()):
+            self.typedef()
         elif self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
             self.var_id()
+        else:
+            self.add_error('Var Declaration', follow_var_decl())
+
+    def var_decls(self):
+        if self.verify(first_var_decl()):
+            self.var_decl()
+            self.var_decls()
 
     def var_block(self):
         if self.eat_lexeme('var'):
@@ -614,30 +623,26 @@ class Parser:
         else:
             self.add_error('--`, `Id`, `[`, `(`, `++`, `.` or `=', follow_var_id())
 
-    def const_decls(self):
+    def const_decl(self):
         if self.eat_type():
             self.const()
-            self.const_list()
+            self.const_list() 
 
-            if self.eat_lexeme(';'):
-                self.const_decls()
-            else:
-                self.add_error(';', follow_const_decls()) ############## teste
-        elif self.eat_lexeme('typedef'): 
-            if self.eat_type():
-                if self.eat_code(Code.IDENTIFIER):
-                    if self.eat_lexeme(';'):
-                        self.const_decls()
-                    else:
-                        self.add_error(';', follow_const_decl()) ############## teste
-                else:
-                    self.add_error('Id', follow_const_decl()) ############## teste
-            else:
-                self.add_error('Type', follow_const_decl())  ############## teste
+            if not self.eat_lexeme(';'):
+                self.add_error(';', follow_const_decl()) ############## teste
+        elif self.verify(first_typedef()):
+            self.typedef()
         elif self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
-            self.const_id()
+            self.var_id()
+        else:
+            self.add_error('Cons Declaration', follow_const_decl())
+
+    def const_decls(self):
+        if self.verify(first_const_decl()):
+            self.const_decl()
+            self.const_decls()
     
     def const_block(self):
         if self.eat_lexeme('const'):
