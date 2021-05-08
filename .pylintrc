@@ -1,5 +1,5 @@
 [MASTER]
 init-hook='import sys; sys.path.append(".")'
-disable=missing-docstring, empty-docstring, W0105, C0303, C0103
+disable=missing-docstring, empty-docstring, W0105, C0303, C0103, W0614, W0401
 [FORMAT]
 max-line-length=240
