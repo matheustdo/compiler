@@ -86,17 +86,6 @@ class Parser:
             return True
 
         return False
-        
-    def eat_type(self):
-        if (self.eat_lexeme('int') or self.eat_lexeme('real') or
-            self.eat_lexeme('boolean') or self.eat_lexeme('string')):
-            return True
-        if self.eat_lexeme('struct'):
-            if self.eat_code(Code.IDENTIFIER):
-                return True
-            self.add_error('Id', follow_type())
-
-        return False
 
     def verify(self, first):
         if self.token is None:
@@ -190,7 +179,7 @@ class Parser:
             if not self.eat_lexeme(';'):
                 self.add_error(';', follow_assign())   ############## teste
         else:
-            self.add_error('=`, `++` or `--`', follow_assign())
+            self.add_error('=`, `++` or `--', follow_assign())
 
     def access(self):
         if self.eat_lexeme('.'):
@@ -406,9 +395,19 @@ class Parser:
         else:
             self.add_error('[', follow_array())
 
+    def type_(self):
+        if self.eat_lexeme('struct'):
+            if not self.eat_code(Code.IDENTIFIER):
+                self.add_error('Id', follow_type())
+        elif not (self.eat_lexeme('int') or self.eat_lexeme('real') or
+            self.eat_lexeme('boolean') or self.eat_lexeme('string')):
+            self.add_error('Id', follow_type())
+
     def typedef(self):
         if self.eat_lexeme('typedef'):
-            if self.eat_type():
+            if self.verify(first_type()):
+                self.type_()
+
                 if self.eat_code(Code.IDENTIFIER):
                     if not self.eat_lexeme(';'):
                         self.add_error(';', follow_typedef())
@@ -446,7 +445,8 @@ class Parser:
             self.add_error('--`, `Id`, `[`, `(`, `++`, `.` or `=', follow_var_id())
 
     def var_decl(self):
-        if self.eat_type():
+        if self.verify(first_type()):
+            self.type_()
             self.var()
             self.var_list() 
 
@@ -624,7 +624,8 @@ class Parser:
             self.add_error('--`, `Id`, `[`, `(`, `++`, `.` or `=', follow_var_id())
 
     def const_decl(self):
-        if self.eat_type():
+        if self.verify(first_type()):
+            self.type_()
             self.const()
             self.const_list() 
 
