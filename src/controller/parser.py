@@ -424,6 +424,9 @@ class Parser:
         if self.verify(first_var()):
             self.var()
             self.var_list()
+
+            if not self.eat_lexeme(';'):
+                self.add_error(';', follow_var_id())
         elif self.verify(first_stm_id()):
             self.stm_id()
         else:
@@ -546,11 +549,141 @@ class Parser:
         else:
             self.add_error('procedure', follow_start_block())
 
-    def program(self):
-        if self.eat_lexeme('structs'):
-            print()
+    def array_expr(self):
+        if self.eat_lexeme(','):
+            self.array_def()
+
+    def array_def(self):
+        if self.verify(first_expr()):
+            self.expr()
+            self.array_expr()
+        else:
+            self.add_error('Expression', follow_array_def())
+
+    def array_vector(self):
+        if self.eat_lexeme(','):
+            self.array_decl()
+
+    def array_decl(self):
+        if self.eat_lexeme('{'):
+            self.array_def()
+
+            if self.eat_lexeme('}'):
+                self.array_vector()
+            else:
+                self.add_error('}', follow_array_decl())
+        else:
+            self.add_error('{', follow_array_decl())
+
+    def decl_attribute(self):
+        if self.verify(first_array_decl()):
+            self.array_decl()
+        elif self.verify(first_expr()):
+            self.expr()
+        else:
+            self.add_error('{` or `Expression', follow_decl_atribute())
+
+    def const(self):
+        if self.eat_code(Code.IDENTIFIER):
+            self.arrays()
+        else:
+            self.add_error('Id', follow_const())
+            
+    def const_list(self):
+        if self.eat_lexeme(','):
+            if self.eat_code(Code.IDENTIFIER):
+                self.arrays()
+                self.const_list()
+            else:
+                self.add_error('Id', follow_const_list()) ############## teste
+        elif self.eat_lexeme('='):
+            self.decl_attribute()
+            
+            """ if not self.eat_lexeme(';'):
+                self.add_error(';', follow_const_list()) """
+
+    def const_id(self):
+        if self.verify(first_const()):
+            self.const()
+            self.const_list()
+
+            if not self.eat_lexeme(';'):
+                self.add_error(';', follow_const_id())
+        elif self.verify(first_stm_id()):
+            self.stm_id()
+        else:
+            self.add_error('--`, `Id`, `[`, `(`, `++`, `.` or `=', follow_var_id())
+
+    def const_decls(self):
+        if self.eat_type():
+            self.const()
+            self.const_list()
+
+            if self.eat_lexeme(';'):
+                self.const_decls()
+            else:
+                self.add_error(';', follow_const_decls()) ############## teste
+        elif self.eat_lexeme('typedef'): 
+            if self.eat_type():
+                if self.eat_code(Code.IDENTIFIER):
+                    if self.eat_lexeme(';'):
+                        self.const_decls()
+                    else:
+                        self.add_error(';', follow_const_decl()) ############## teste
+                else:
+                    self.add_error('Id', follow_const_decl()) ############## teste
+            else:
+                self.add_error('Type', follow_const_decl())  ############## teste
+        elif self.verify(first_stm_scope()):
+            self.stm_scope()
+        elif self.eat_code(Code.IDENTIFIER):
+            self.const_id()
+    
+    def const_block(self):
         if self.eat_lexeme('const'):
-            print()
+            if self.eat_lexeme('{'):
+                self.const_decls()
+
+                if not self.eat_lexeme('}'):
+                    self.add_error('}', follow_const_block())  ############## teste
+            else:
+                self.add_error('{', follow_const_block())
+
+    def extends(self):
+        if self.eat_lexeme('extends'):
+            if self.eat_lexeme('struct'):
+                if not self.eat_code(Code.IDENTIFIER):
+                    self.add_error('Id', follow_extends())  ############## teste
+            else:
+                self.add_error('struct', follow_extends())  ############## teste
+
+    def struct_block(self):
+        if self.eat_lexeme('struct'):
+            if self.eat_code(Code.IDENTIFIER):
+                self.extends()
+
+                if self.eat_lexeme('{'):
+                    self.const_block()
+                    self.var_block()
+
+                    if not self.eat_lexeme('}'):
+                        self.add_error('} or `Declarations', follow_struct_block())  ############## teste
+                else:
+                    self.add_error('{', follow_struct_block())  ############## teste
+            else:
+                self.add_error('Id', follow_struct_block())  ############## teste
+        else:
+            self.add_error('struct', follow_struct_block())
+
+
+    def structs(self):
+        if self.verify(first_struct_block()):
+            self.struct_block()
+            self.structs()
+
+    def program(self):
+        self.structs()
+        self.const_block()
         self.var_block()
         
         if self.verify(first_start_block()):
