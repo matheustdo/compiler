@@ -15,6 +15,26 @@ class Parser:
         if len(lexical_tokens) > 0:
             self.token = lexical_tokens[0]
 
+    def sync(self, follow):
+        synced = False
+
+        while not synced and self.token is not None:
+            for terminal in follow:
+                if terminal == 'id':
+                    if self.token.code == Code.IDENTIFIER:
+                        synced = True
+                elif terminal == 'num':
+                    if self.token.code == Code.NUMBER:
+                        synced = True
+                elif terminal == 'str':
+                    if self.token.code == Code.STRING:
+                        synced = True
+                elif self.token and terminal == self.token.lexeme:
+                    synced = True
+
+            if not synced:
+                self.advance()
+
     def add_error(self, expected):
         if self.token is None:
             line = 0
@@ -56,9 +76,6 @@ class Parser:
             return True
 
         return False
-
-    def panic(self, sync):
-        print(sync)
 
     def eat_code(self, code):
         if self.token is not None and self.token and code == self.token.code:
