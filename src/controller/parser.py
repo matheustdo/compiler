@@ -57,6 +57,9 @@ class Parser:
 
         return False
 
+    def panic(self, sync):
+        print(sync)
+
     def eat_code(self, code):
         if self.token is not None and self.token and code == self.token.code:
             self.advance()
