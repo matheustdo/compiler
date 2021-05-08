@@ -1,12 +1,12 @@
 from src.definitions.firsts import *
 
 #<Program> follow = {$}
-def follow_Program():
+def follow_program():
     return {'$'}
 
 #<Decls> follow = follow(<Program>)
 def follow_decls():
-    return follow_Program()
+    return follow_program()
 
 #<Decl> follow = first(<Decls>) - {ε} U follow(<Decls>)
 def follow_decl():
@@ -118,7 +118,7 @@ def follow_assign():
 
 #<Access> follow = first(<Accesses>) - {ε} U follow(<Accesses>) U first(<Assign>) U follow(<Value>) U follow(<Log Value>)
 def follow_access():
-    return first_accesses() | follow_accesses() | first_assign() | follow_value() | follow_log_Value()
+    return first_accesses() | follow_accesses() | first_assign() | follow_value() | follow_log_value()
 
 #<Accesses> follow = first(<Assign>) U follow(<Id Value>)
 def follow_accesses():
@@ -138,7 +138,7 @@ def follow_func_decl():
 
 #<Start Block> follow = first(<Decls>) - {ε} U follow(<Program>)
 def follow_start_block():
-    return first_decls() | follow_Program()
+    return first_decls() | follow_program()
 
 #<Proc Decl> follow = follow(<Decl>)
 def follow_proc_decl():
@@ -177,7 +177,7 @@ def follow_func_stms():
     return {'}'}
 
 #<Func Stm> follow = first(<Func Stms>) - {ε} U follow(<Func Stms>) U first(<Else Stm>) - {ε} U first(<Func Stm>)
-def follow_func_Stm():
+def follow_func_stm():
     return first_func_stms() | follow_func_stms() | first_else_stm() | first_func_stm()
 
 #<Else Stm> follow = first(<Func Stm>)
@@ -186,23 +186,23 @@ def follow_else_stm():
 
 #<Func Normal Stm> follow = follow(<Func Stm>)
 def follow_func_normal_stm():
-    return follow_func_Stm()
+    return follow_func_stm()
 
 #<Var Stm> follow = follow(<Func Normal Stm>)
-def follow_var_Stm():
+def follow_var_stm():
     return follow_func_normal_stm()
 
 #<Stm Id> follow = follow(<Var Id>) U follow(<Const Id>) U follow(<Var Stm>)
 def follow_stm_id():
-    return follow_var_id() | follow_const_id() | follow_var_Stm()
+    return follow_var_id() | follow_const_id() | follow_var_stm()
 
 #<Stm Scope> follow = follow(<Var Decl>) U follow(<Const Decl>) U follow(<Var Stm>)
 def follow_stm_scope():
-    return follow_var_decl() | follow_const_decl() | follow_var_Stm()
+    return follow_var_decl() | follow_const_decl() | follow_var_stm()
 
 #<Stm Cmd> follow = follow(<Var Stm>)
 def follow_stm_cmd():
-    return follow_var_Stm()
+    return follow_var_stm()
 
 #<Expr> follow = follow(<Decl Atribute>) U first(<Array Expr>) - {ε} U follow(<Array Def>) U follow(<Index>) U first(<Args List>) - {ε} U follow(<Args>) U follow(<Args List>) U {;, )}
 def follow_expr():
@@ -266,7 +266,7 @@ def follow_value():
 
 #<Id Value> follow = follow(<Value>) U follow(<Log Value>)
 def follow_id_value():
-    return follow_value() | follow_log_Value()
+    return follow_value() | follow_log_value()
 
 #<Log Expr> follow = {)}
 def follow_log_expr():
@@ -309,5 +309,5 @@ def follow_log_unary():
     return first_log_compare_() | follow_log_compare_() | follow_log_compare()
 
 #<Log Value> follow = follow(<Log Unary>)
-def follow_log_Value():
+def follow_log_value():
     return follow_log_unary()
