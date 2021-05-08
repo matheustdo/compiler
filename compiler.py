@@ -42,7 +42,7 @@ for valid_file in valid_files:
         if token.code == Code.MF_SYNTAX:
             syntactic_errors_amount += 1
 
-        if token_index + 1 < lexical_tokens_length:
+        if token_index + 1 < syntactic_tokens_length:
             output_content += '\n'
 
     output_content += '\n\n===================\n'

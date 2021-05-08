@@ -313,4 +313,4 @@ def first_log_unary():
 # <Log Value> first = {num, str, true, false, local, global, id, (}
 def first_log_value():
     return {'num', 'str', 'true', 'false', 'local', 'global', 'id', '('}
-
+    

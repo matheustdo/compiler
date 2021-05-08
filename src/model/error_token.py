@@ -10,4 +10,4 @@ class ErrorToken():
         self.error_message = error_message
     
     def __str__(self):
-        return str(self.line_begin_index + 1) + '  ' + self.error_message
+        return str(self.line_begin_index + 1) + '  ' + self.error_message +  ' '
