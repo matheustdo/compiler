@@ -478,7 +478,7 @@ class Parser:
 
     def func_normal_stm(self):
         if self.eat_lexeme('{'):
-            self.var_stm()
+            self.func_stms()
             
             if not self.eat_lexeme('}'):
                 self.add_error('}', follow_func_normal_stm())  ############## teste
@@ -508,7 +508,6 @@ class Parser:
                         
                     else:
                         self.add_error('then', follow_func_stm())  ############## teste
-                    
                 else:
                     self.add_error(')', follow_func_stm())  ############## teste
             else:
@@ -525,6 +524,8 @@ class Parser:
                 self.add_error('(', follow_func_stm())
         elif self.verify(first_func_normal_stm()):
             self.func_normal_stm()
+        else:
+            self.add_error('Function', follow_func_stm())
 
     def func_stms(self):
         if self.verify(first_func_stm()):
@@ -537,10 +538,9 @@ class Parser:
             self.func_stms()
             
             if not self.eat_lexeme('}'):
-                self.add_error('}', follow_func_block())  ############## teste
-            
+                self.add_error('}', follow_func_block())  ############## teste   
         else:
-            self.add_error('{', follow_func_block())  ############## teste
+            self.add_error('{', follow_func_block())
 
     def start_block(self): 
         if self.eat_lexeme('procedure'):
@@ -608,29 +608,23 @@ class Parser:
         elif self.eat_lexeme('='):
             self.decl_attribute()
             
-            """ if not self.eat_lexeme(';'):
-                self.add_error(';', follow_const_list()) """
+            if not self.eat_lexeme(';'):
+                self.add_error(';', follow_const_list())
 
     def const_id(self):
         if self.verify(first_const()):
             self.const()
             self.const_list()
-
-            if not self.eat_lexeme(';'):
-                self.add_error(';', follow_const_id())
         elif self.verify(first_stm_id()):
             self.stm_id()
         else:
-            self.add_error('--`, `Id`, `[`, `(`, `++`, `.` or `=', follow_var_id())
+            self.add_error('--`, `Id`, `[`, `(`, `++`, `.` or `=', follow_const_id())
 
     def const_decl(self):
         if self.verify(first_type()):
             self.type_()
             self.const()
             self.const_list() 
-
-            if not self.eat_lexeme(';'):
-                self.add_error(';', follow_const_decl()) ############## teste
         elif self.verify(first_typedef()):
             self.typedef()
         elif self.verify(first_stm_scope()):
@@ -681,6 +675,98 @@ class Parser:
         else:
             self.add_error('struct', follow_struct_block())
 
+    def param_mult_arrays(self):
+        if self.eat_lexeme('['):
+            if self.eat_code(Code.NUMBER):
+                if self.eat_lexeme(']'):
+                    self.param_mult_arrays()
+                else:
+                    self.add_error(']', follow_param_mult_arrays())
+            else:
+                self.add_error('Number', follow_param_mult_arrays())
+
+    def param_arrays(self):
+        if self.eat_lexeme('['):
+            if self.eat_lexeme(']'):
+                self.param_mult_arrays()
+            else:
+                self.add_error(']', follow_param_arrays())
+
+    def params_list(self):
+        if self.eat_lexeme(','):
+            self.param()
+            self.params_list()
+
+    def param(self):
+        if self.verify(first_param_type()):
+            self.param_type()
+
+            if self.eat_code(Code.IDENTIFIER):
+                self.param_arrays()
+            else:
+                self.add_error('Id', follow_param())
+        else:
+            self.add_error('type` or `Id', follow_param())
+
+    def params(self):
+        if self.verify(first_param()):
+            self.param()
+            self.params_list()
+
+    def param_type(self):
+        if self.verify(first_type()):
+            self.type_()
+        elif not self.eat_code(Code.IDENTIFIER):
+            self.add_error('type` or `Id', follow_param_type())
+
+    def proc_decl(self):
+        if self.eat_lexeme('procedure'):
+            if self.eat_code(Code.IDENTIFIER):
+                if self.eat_lexeme('('):
+                    self.params()
+
+                    if self.eat_lexeme(')'):
+                        self.func_block()
+                    else:
+                        self.add_error(')', follow_proc_decl())
+                else:
+                    self.add_error('(', follow_proc_decl())
+            else:
+                self.add_error('Id', follow_proc_decl())
+        else:
+            self.add_error('procedure', follow_proc_decl())
+
+    def func_decl(self):
+        if self.eat_lexeme('function'):
+            self.param_type()
+
+            if self.eat_code(Code.IDENTIFIER):
+                if self.eat_lexeme('('):
+                    self.params()
+
+                    if self.eat_lexeme(')'):
+                        self.func_block()
+                    else:
+                        self.add_error(')', follow_func_decl())
+                else:
+                    self.add_error('(', follow_func_decl())
+            else:
+                self.add_error('Id', follow_func_decl())
+        else:
+            self.add_error('function', follow_func_decl())
+
+    def decl(self):
+        if self.verify(first_func_decl()):
+            self.func_decl()
+        elif self.verify(first_proc_decl()):
+            self.proc_decl()
+        else:
+            self.add_error('function` or `procedure', follow_decl())
+
+    def decls(self):
+        if self.verify(first_decl()):
+            self.decl()
+            self.decls()
 
     def structs(self):
         if self.verify(first_struct_block()):
@@ -696,6 +782,8 @@ class Parser:
             self.start_block()
         else:   
             self.add_custom_error('The procedure `start` has not found.', follow_program())
+
+        self.decls()
 
     def execute(self):
         self.program()

@@ -161,12 +161,12 @@ def follow_params_list():
     return follow_params()
 
 #<Param Arrays> follow = follow(<Param>)
-def follow_param_Arrays():
+def follow_param_arrays():
     return follow_param()
 
 #<Param Mult Arrays> follow = follow(<Param Arrays>)
-def follow_param_mult_Arrays():
-    return follow_param_Arrays()
+def follow_param_mult_arrays():
+    return follow_param_arrays()
 
 #<Func Block> follow = follow(<Func Decl>) U follow(<Start Block>) U follow(<Proc Decl>)
 def follow_func_block():
