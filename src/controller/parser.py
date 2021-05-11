@@ -538,7 +538,7 @@ class Parser:
             self.func_stms()
             
             if not self.eat_lexeme('}'):
-                self.add_error('}', follow_func_block())  ############## teste   
+                self.add_error('}', follow_func_block())
         else:
             self.add_error('{', follow_func_block())
 
@@ -549,14 +549,14 @@ class Parser:
                     if self.eat_lexeme(')'):
                         self.func_block()
                     else:
-                        self.add_error(')', follow_start_block())  ############## teste
+                        self.add_error(')', follow_start_block()) 
                 else:
-                    self.add_error('(', follow_start_block())  ############## teste
+                    self.add_error('(', follow_start_block()) 
 
             else:
-                self.add_error('start', follow_start_block())  ############## teste
+                self.add_error('start', follow_start_block())
         else:
-            self.add_error('procedure', follow_start_block())
+            self.add_custom_error('The procedure `start` has not found.', follow_start_block())
 
     def array_expr(self):
         if self.eat_lexeme(','):
@@ -777,12 +777,7 @@ class Parser:
         self.structs()
         self.const_block()
         self.var_block()
-        
-        if self.verify(first_start_block()):
-            self.start_block()
-        else:   
-            self.add_custom_error('The procedure `start` has not found.', follow_program())
-
+        self.start_block()
         self.decls()
 
     def execute(self):
