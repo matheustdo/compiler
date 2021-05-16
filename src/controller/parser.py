@@ -64,6 +64,19 @@ class Parser:
             self.syntactic_tokens.append(error_token)
             self.sync(follow)
 
+    def add_error_without_sync(self, expected):
+        if self.token is None:
+            line = 0
+
+            if len(self.lexical_tokens) > 0:
+                line = self.syntactic_tokens[self.tokens_index - 1].line_begin_index
+            
+            error_token = ErrorToken(line, f'Expected `{expected}` and found `EOF`.')
+            self.syntactic_tokens.append(error_token)
+        else:
+            error_token = ErrorToken(self.token.line_begin_index, f'Expected `{expected}` and found `{self.token.lexeme}`.')
+            self.syntactic_tokens.append(error_token)
+
     def advance(self):
         self.syntactic_tokens.append(self.token)
         self.tokens_index += 1
@@ -87,6 +100,12 @@ class Parser:
 
         return False
 
+    def eat_opening(self, lexeme):
+        if self.token is not None and self.token and lexeme == self.token.lexeme:
+            self.advance()
+        elif lexeme == "{" or lexeme == "(":
+            self.add_error_without_sync(lexeme)
+
     def verify(self, first):
         if self.token is None:
             return None
@@ -108,19 +127,19 @@ class Parser:
 
     def stm_cmd(self):
         if self.eat_lexeme('print'):
-            if self.eat_lexeme('('):
-                self.args()
+            self.eat_opening('(')
+            self.args()
 
-                if self.eat_lexeme(')'):
-                    if not self.eat_lexeme(';'):
-                        self.add_error(';', follow_stm_cmd())  ############## teste
+            if self.eat_lexeme(')'):
+                if not self.eat_lexeme(';'):
+                    self.add_error(';', follow_stm_cmd()) 
         elif self.eat_lexeme('read'):
-            if self.eat_lexeme('('):
-                self.args()
+            self.eat_opening('(')
+            self.args()
 
-                if self.eat_lexeme(')'):
-                    if not self.eat_lexeme(';'):
-                        self.add_error(';', follow_stm_cmd())  ############## teste
+            if self.eat_lexeme(')'):
+                if not self.eat_lexeme(';'):
+                    self.add_error(';', follow_stm_cmd())  
         else:
             self.add_error('read` or `print', follow_stm_cmd())
 
@@ -141,9 +160,9 @@ class Parser:
 
             if self.eat_lexeme(')'):
                 if not self.eat_lexeme(';'):
-                    self.add_error(';', follow_stm_id()) ############## teste
+                    self.add_error(';', follow_stm_id()) 
             else:
-                self.add_error(')', follow_stm_id()) ############## teste
+                self.add_error(')', follow_stm_id()) 
         else:
             self.add_error('=`, `+`, `-`, `[`, `.` or `(', follow_stm_id())
 
@@ -174,10 +193,10 @@ class Parser:
             self.expr()
                 
             if not self.eat_lexeme(';'):
-                self.add_error(';', follow_assign())   ############## teste
+                self.add_error(';', follow_assign())   
         elif self.eat_lexeme('++') or self.eat_lexeme('--'):
             if not self.eat_lexeme(';'):
-                self.add_error(';', follow_assign())   ############## teste
+                self.add_error(';', follow_assign())   
         else:
             self.add_error('=`, `++` or `--', follow_assign())
 
@@ -186,7 +205,7 @@ class Parser:
             if self.eat_code(Code.IDENTIFIER):
                 self.arrays()
             else:
-                self.add_error('Id', follow_access()) ############## teste
+                self.add_error('Id', follow_access()) 
         else:
             self.add_error('.', follow_access())
             
@@ -196,7 +215,7 @@ class Parser:
                 self.arrays()
                 self.accesses()
             else:
-                self.add_error('Id', follow_accesses()) ############## teste
+                self.add_error('Id', follow_accesses())
 
     def args_list(self):
         if self.eat_lexeme(','):
@@ -213,7 +232,7 @@ class Parser:
             self.args()
 
             if not self.eat_lexeme(')'):
-                self.add_error(')', follow_id_value())  ############## teste
+                self.add_error(')', follow_id_value()) 
         else:
             self.arrays()
             self.accesses()
@@ -231,10 +250,10 @@ class Parser:
             self.log_expr()
 
             if not self.eat_lexeme(')'):
-                self.add_error(')', follow_log_unary())  ############## teste
+                self.add_error(')', follow_log_unary())  
         elif not (self.eat_code(Code.NUMBER) or self.eat_code(Code.STRING) or
             self.eat_lexeme('true') or self.eat_lexeme('false')):
-            self.add_error('Num`, `Str` or `Boolean', follow_log_unary())  ############## teste
+            self.add_error('Num`, `Str` or `Boolean', follow_log_unary())  
 
     def log_compare_2(self):
         if self.eat_lexeme('<'):
@@ -300,7 +319,7 @@ class Parser:
             self.expr()
 
             if not self.eat_lexeme(')'):
-                self.add_error(')', follow_unary()) ############## teste
+                self.add_error(')', follow_unary()) 
         elif not (self.eat_code(Code.NUMBER) or self.eat_code(Code.STRING) or
             self.eat_lexeme('true') or self.eat_lexeme('false')):
             self.add_error('Num`, `Str` or `Boolean', follow_unary())
@@ -391,7 +410,7 @@ class Parser:
                 self.expr()
 
             if not self.eat_lexeme(']'):
-                self.add_error(']', follow_array()) ############## teste
+                self.add_error(']', follow_array()) 
         else:
             self.add_error('[', follow_array())
 
@@ -430,7 +449,7 @@ class Parser:
                 self.arrays()
                 self.var_list()
             else:
-                self.add_error('Id', follow_var_list()) ############## teste
+                self.add_error('Id', follow_var_list())
 
     def var_id(self):
         if self.verify(first_var()):
@@ -451,7 +470,7 @@ class Parser:
             self.var_list() 
 
             if not self.eat_lexeme(';'):
-                self.add_error(';', follow_var_decl()) ############## teste
+                self.add_error(';', follow_var_decl()) 
         elif self.verify(first_typedef()):
             self.typedef()
         elif self.verify(first_stm_scope()):
@@ -468,27 +487,25 @@ class Parser:
 
     def var_block(self):
         if self.eat_lexeme('var'):
-            if self.eat_lexeme('{'):
-                self.var_decls()
+            self.eat_opening('{')
+            self.var_decls()
 
-                if not self.eat_lexeme('}'):
-                    self.add_error('}', follow_var_block())  ############## teste
-            else:
-                self.add_error('{', follow_var_block())
+            if not self.eat_lexeme('}'):
+                self.add_error('}', follow_var_block())
 
     def func_normal_stm(self):
         if self.eat_lexeme('{'):
             self.func_stms()
             
             if not self.eat_lexeme('}'):
-                self.add_error('}', follow_func_normal_stm())  ############## teste
+                self.add_error('}', follow_func_normal_stm()) 
         elif self.verify(first_var_stm()):
             self.var_stm()
         elif self.eat_lexeme('return'):
             self.expr()
             
             if not self.eat_lexeme(';'):
-                self.add_error(';', follow_func_normal_stm())  ############## teste
+                self.add_error(';', follow_func_normal_stm()) 
         elif not self.eat_lexeme(';'):
             self.add_error('{`, `id`, `local`, `global`, `print`, `read`, `;` or `return', follow_func_normal_stm())
 
@@ -497,31 +514,27 @@ class Parser:
 
     def func_stm(self):
         if self.eat_lexeme('if'):
-            if self.eat_lexeme('('):
-                self.log_expr()
+            self.eat_opening('(')
+            self.log_expr()
 
-                if self.eat_lexeme(')'):
-                    if self.eat_lexeme('then'):
-                        self.func_stm()
-                        self.else_stm()
-                        self.func_stm()
-                        
-                    else:
-                        self.add_error('then', follow_func_stm())  ############## teste
-                else:
-                    self.add_error(')', follow_func_stm())  ############## teste
-            else:
-                self.add_error('(', follow_func_stm())  ############## teste
-        elif self.eat_lexeme('while'):
-            if self.eat_lexeme('('):
-                self.log_expr()
-
-                if self.eat_lexeme(')'):
+            if self.eat_lexeme(')'):
+                if self.eat_lexeme('then'):
                     self.func_stm()
+                    self.else_stm()
+                    self.func_stm()
+                    
                 else:
-                    self.add_error(')', follow_func_stm())
+                    self.add_error('then', follow_func_stm()) 
             else:
-                self.add_error('(', follow_func_stm())
+                self.add_error(')', follow_func_stm())  
+        elif self.eat_lexeme('while'):
+            self.eat_opening('(')
+            self.log_expr()
+
+            if self.eat_lexeme(')'):
+                self.func_stm()
+            else:
+                self.add_error(')', follow_func_stm())
         elif self.verify(first_func_normal_stm()):
             self.func_normal_stm()
         else:
@@ -533,26 +546,22 @@ class Parser:
             self.func_stms()
 
     def func_block(self):
-        if self.eat_lexeme('{'):
-            self.var_block()
-            self.func_stms()
-            
-            if not self.eat_lexeme('}'):
-                self.add_error('}', follow_func_block())
-        else:
-            self.add_error('{', follow_func_block())
+        self.eat_opening('{')
+        self.var_block()
+        self.func_stms()
+        
+        if not self.eat_lexeme('}'):
+            self.add_error('}', follow_func_block())
 
     def start_block(self): 
         if self.eat_lexeme('procedure'):
             if self.eat_lexeme('start'):
-                if self.eat_lexeme('('):
-                    if self.eat_lexeme(')'):
-                        self.func_block()
-                    else:
-                        self.add_error(')', follow_start_block()) 
-                else:
-                    self.add_error('(', follow_start_block()) 
+                self.eat_opening('(')
 
+                if self.eat_lexeme(')'):
+                    self.func_block()
+                else:
+                    self.add_error(')', follow_start_block()) 
             else:
                 self.add_error('start', follow_start_block())
         else:
@@ -574,15 +583,13 @@ class Parser:
             self.array_decl()
 
     def array_decl(self):
-        if self.eat_lexeme('{'):
-            self.array_def()
+        self.eat_opening('{')
+        self.array_def()
 
-            if self.eat_lexeme('}'):
-                self.array_vector()
-            else:
-                self.add_error('}', follow_array_decl())
+        if self.eat_lexeme('}'):
+            self.array_vector()
         else:
-            self.add_error('{', follow_array_decl())
+            self.add_error('}', follow_array_decl())
 
     def decl_attribute(self):
         if self.verify(first_array_decl()):
@@ -641,37 +648,33 @@ class Parser:
     
     def const_block(self):
         if self.eat_lexeme('const'):
-            if self.eat_lexeme('{'):
-                self.const_decls()
+            self.eat_opening('{')
+            self.const_decls()
 
-                if not self.eat_lexeme('}'):
-                    self.add_error('}', follow_const_block())  ############## teste
-            else:
-                self.add_error('{', follow_const_block())
+            if not self.eat_lexeme('}'):
+                self.add_error('}', follow_const_block()) 
 
     def extends(self):
         if self.eat_lexeme('extends'):
             if self.eat_lexeme('struct'):
                 if not self.eat_code(Code.IDENTIFIER):
-                    self.add_error('Id', follow_extends())  ############## teste
+                    self.add_error('Id', follow_extends()) 
             else:
-                self.add_error('struct', follow_extends())  ############## teste
+                self.add_error('struct', follow_extends())
 
     def struct_block(self):
         if self.eat_lexeme('struct'):
             if self.eat_code(Code.IDENTIFIER):
                 self.extends()
 
-                if self.eat_lexeme('{'):
-                    self.const_block()
-                    self.var_block()
+                self.eat_opening('{')
+                self.const_block()
+                self.var_block()
 
-                    if not self.eat_lexeme('}'):
-                        self.add_error('} or `Declarations', follow_struct_block())  ############## teste
-                else:
-                    self.add_error('{', follow_struct_block())  ############## teste
+                if not self.eat_lexeme('}'):
+                    self.add_error('} or `Declarations', follow_struct_block()) 
             else:
-                self.add_error('Id', follow_struct_block())  ############## teste
+                self.add_error('Id', follow_struct_block()) 
         else:
             self.add_error('struct', follow_struct_block())
 
@@ -722,15 +725,13 @@ class Parser:
     def proc_decl(self):
         if self.eat_lexeme('procedure'):
             if self.eat_code(Code.IDENTIFIER):
-                if self.eat_lexeme('('):
-                    self.params()
+                self.eat_opening('(')
+                self.params()
 
-                    if self.eat_lexeme(')'):
-                        self.func_block()
-                    else:
-                        self.add_error(')', follow_proc_decl())
+                if self.eat_lexeme(')'):
+                    self.func_block()
                 else:
-                    self.add_error('(', follow_proc_decl())
+                    self.add_error(')', follow_proc_decl())
             else:
                 self.add_error('Id', follow_proc_decl())
         else:
@@ -741,15 +742,13 @@ class Parser:
             self.param_type()
 
             if self.eat_code(Code.IDENTIFIER):
-                if self.eat_lexeme('('):
-                    self.params()
+                self.eat_opening('(')
+                self.params()
 
-                    if self.eat_lexeme(')'):
-                        self.func_block()
-                    else:
-                        self.add_error(')', follow_func_decl())
+                if self.eat_lexeme(')'):
+                    self.func_block()
                 else:
-                    self.add_error('(', follow_func_decl())
+                    self.add_error(')', follow_func_decl())
             else:
                 self.add_error('Id', follow_func_decl())
         else:
