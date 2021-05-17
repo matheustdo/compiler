@@ -38,5 +38,10 @@ Delimiters | ; , ( ) { } [ ] .
 String | " ( letter \| digit \| symbol \| \" )* "
 Symbol | ASCII code from 32 to 126 (except ASCII 34)
 
+### Grammar
+The grammar is factored on the left, without left recursion, respecting the precedence and associativity of the arithmetic, logical and relational operators, using the GOLD Parser Builder software.
+
+Its code was built by the class and can be found at [Compiler Grammar](https://github.com/diegossl/compiler-grammar).
+
 ### About
 Developed by [Matheus Teles](https://github.com/matheustdo).
