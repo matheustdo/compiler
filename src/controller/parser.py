@@ -242,8 +242,10 @@ class Parser:
             self.log_unary()
         elif self.eat_lexeme('local'):
             self.access()
+            self.accesses()
         elif self.eat_lexeme('global'):
             self.access()
+            self.accesses()
         elif self.eat_code(Code.IDENTIFIER):
             self.id_value()
         elif self.eat_lexeme('('):
@@ -311,8 +313,10 @@ class Parser:
             self.unary()
         elif self.eat_lexeme('local'):
             self.access()
+            self.accesses()
         elif self.eat_lexeme('global'):
             self.access()
+            self.accesses()
         elif self.eat_code(Code.IDENTIFIER):
             self.id_value()
         elif self.eat_lexeme('('):
