@@ -1,0 +1,26 @@
+// Arquivo de Entrada
+
+const
+{
+    int teste, cinco = 5;
+    struct Id a[2][2] = {a, b}, {c, d};
+}
+
+var
+{
+    int oxe[true];
+    int oxe["bool"];
+    oxe = 5;
+
+    a5 as;
+    int inteiro, b;
+    int a;
+    real numero_real;
+    real numero_real2;
+}
+
+
+procedure start()
+{
+    if(a<b) then {  a = a+b;} else {  while(a>=b) {    b = b+1;  }}
+}

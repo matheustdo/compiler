@@ -1,0 +1,30 @@
+// Programa sem erros - Testando tudo que a linguagem aceita
+
+//Palavras reservadas
+var, const, typedef, struct, extends, procedure, function, start, return, if, else, then, while, read, print, int, real, boolean, string, true, false, global, local
+
+//Identificadores validos
+
+num1 todos_tutores soma q123
+
+//Numeros validos
+
+123 1.2 23.987
+
+//Cadeias de caracteres
+
+"texto correto" "@#$:^&*"
+
+//Operadores
+
++ - * / ++ -- == != > >= < <= = && || !
+
+//Delimitadores
+
+; , ( ) { } [ ] .
+
+//Comentarios validos
+
+/* isto é um comentário
+de bloco */
+// isto é um comentário de linha

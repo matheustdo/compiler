@@ -1,0 +1,14 @@
+// Teste 1 - identificadores
+var
+{
+    int var_int;
+    real r_e_a_l;
+    boolean b00lean;
+    string str1_ng;
+
+    int var_int!;
+    real _r_e_a_l;
+    boolean b@@lean;
+    string str!_ng;
+}
+teste.indentificadores
