@@ -4,8 +4,6 @@ const
 {
 	int teste, cinco = 5;
 	struct Id a[2][2] = {a, b}, {c, d};
-	alo oxe = 9;
-	alo oxe = 9;
 }
 
 var

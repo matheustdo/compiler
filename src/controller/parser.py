@@ -7,14 +7,19 @@ from src.definitions.follows import *
 This class does the iteration on tokens array and the syntactic analysis.
 '''
 class Parser:
-    def __init__(self, lexical_tokens):
+    def __init__(self, lexical_tokens, semantic):
         self.lexical_tokens = lexical_tokens
         self.tokens_index = 0
         self.token = None
         self.syntactic_tokens = []
+        self.semantic = semantic
 
         if len(lexical_tokens) > 0:
             self.token = lexical_tokens[0]
+
+    def last_token(self): 
+        if len(self.syntactic_tokens) > 1:
+            return self.syntactic_tokens[self.tokens_index - 1]
 
     def sync(self, follow):
         synced = False
@@ -43,10 +48,10 @@ class Parser:
             if len(self.lexical_tokens) > 0:
                 line = self.syntactic_tokens[self.tokens_index - 1].line_begin_index
             
-            error_token = ErrorToken(line, f'Expected `{expected}` and found `EOF`.')
+            error_token = ErrorToken(line, f'Expected `{expected}` and found `EOF`.', Code.MF_SYNTAX)
             self.syntactic_tokens.append(error_token)
         else:
-            error_token = ErrorToken(self.token.line_begin_index, f'Expected `{expected}` and found `{self.token.lexeme}`.')
+            error_token = ErrorToken(self.token.line_begin_index, f'Expected `{expected}` and found `{self.token.lexeme}`.', Code.MF_SYNTAX)
             self.syntactic_tokens.append(error_token)
             self.sync(follow)
 
@@ -57,10 +62,10 @@ class Parser:
             if len(self.lexical_tokens) > 0:
                 line = self.syntactic_tokens[self.tokens_index - 1].line_begin_index
             
-            error_token = ErrorToken(line, message)
+            error_token = ErrorToken(line, message, Code.MF_SYNTAX)
             self.syntactic_tokens.append(error_token)
         else:
-            error_token = ErrorToken(self.token.line_begin_index, message)
+            error_token = ErrorToken(self.token.line_begin_index, message, Code.MF_SYNTAX)
             self.syntactic_tokens.append(error_token)
             self.sync(follow)
 
@@ -71,10 +76,10 @@ class Parser:
             if len(self.lexical_tokens) > 0:
                 line = self.syntactic_tokens[self.tokens_index - 1].line_begin_index
             
-            error_token = ErrorToken(line, f'Expected `{expected}` and found `EOF`.')
+            error_token = ErrorToken(line, f'Expected `{expected}` and found `EOF`.', Code.MF_SYNTAX)
             self.syntactic_tokens.append(error_token)
         else:
-            error_token = ErrorToken(self.token.line_begin_index, f'Expected `{expected}` and found `{self.token.lexeme}`.')
+            error_token = ErrorToken(self.token.line_begin_index, f'Expected `{expected}` and found `{self.token.lexeme}`.', Code.MF_SYNTAX)
             self.syntactic_tokens.append(error_token)
 
     def advance(self):
@@ -441,24 +446,26 @@ class Parser:
         else:
             self.add_error('typedef', follow_typedef())
 
-    def var(self):
+    def var(self, type):
         if self.eat_code(Code.IDENTIFIER):
+            self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme })
             self.arrays()
         else:
             self.add_error('Id', follow_var())
             
-    def var_list(self):
+    def var_list(self, type):
         if self.eat_lexeme(','):
             if self.eat_code(Code.IDENTIFIER):
+                self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme })
                 self.arrays()
-                self.var_list()
+                self.var_list(type)
             else:
                 self.add_error('Id', follow_var_list())
 
-    def var_id(self):
+    def var_id(self, identifier):
         if self.verify(first_var()):
-            self.var()
-            self.var_list()
+            self.var(identifier)
+            self.var_list(identifier)
 
             if not self.eat_lexeme(';'):
                 self.add_error(';', follow_var_id())
@@ -470,8 +477,8 @@ class Parser:
     def var_decl(self):
         if self.verify(first_type()):
             self.type_()
-            self.var()
-            self.var_list() 
+            self.var(self.last_token())
+            self.var_list(self.last_token()) 
 
             if not self.eat_lexeme(';'):
                 self.add_error(';', follow_var_decl()) 
@@ -480,7 +487,7 @@ class Parser:
         elif self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
-            self.var_id()
+            self.var_id(self.last_token())
         else:
             self.add_error('Var Declaration', follow_var_decl())
 
@@ -603,29 +610,33 @@ class Parser:
         else:
             self.add_error('{` or `Expression', follow_decl_atribute())
 
-    def const(self):
+    def const(self, type):
         if self.eat_code(Code.IDENTIFIER):
+            self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme })
             self.arrays()
         else:
             self.add_error('Id', follow_const())
             
-    def const_list(self):
+    def const_list(self, type):
         if self.eat_lexeme(','):
             if self.eat_code(Code.IDENTIFIER):
+                self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme })
                 self.arrays()
-                self.const_list()
+                self.const_list(type)
             else:
-                self.add_error('Id', follow_const_list()) ############## teste
+                self.add_error('Id', follow_const_list())  
         elif self.eat_lexeme('='):
             self.decl_attribute()
             
             if not self.eat_lexeme(';'):
                 self.add_error(';', follow_const_list())
+        else: 
+            self.add_error(',` or `=', follow_const_list())
 
-    def const_id(self):
+    def const_id(self, identifier):
         if self.verify(first_const()):
-            self.const()
-            self.const_list()
+            self.const(identifier)
+            self.const_list(identifier)
         elif self.verify(first_stm_id()):
             self.stm_id()
         else:
@@ -634,16 +645,16 @@ class Parser:
     def const_decl(self):
         if self.verify(first_type()):
             self.type_()
-            self.const()
-            self.const_list() 
+            self.const(self.last_token())
+            self.const_list(self.last_token()) 
         elif self.verify(first_typedef()):
             self.typedef()
         elif self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
-            self.var_id()
+            self.const_id(self.last_token())
         else:
-            self.add_error('Cons Declaration', follow_const_decl())
+            self.add_error('Const Declaration', follow_const_decl())
 
     def const_decls(self):
         if self.verify(first_const_decl()):

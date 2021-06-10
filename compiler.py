@@ -3,6 +3,7 @@ Main compiler code:
 '''
 from src.util import filer
 from src.model.code import Code
+from src.controller.semantic import Semantic
 from src.controller.lexer import Lexer
 from src.controller.parser import Parser
 
@@ -26,7 +27,9 @@ for valid_file in valid_files:
     lexical_tokens = lexer.lexical_tokens
     lexical_tokens_length = len(lexical_tokens)
 
-    parser = Parser(lexical_tokens)
+    semantic = Semantic()
+
+    parser = Parser(lexical_tokens, semantic)
     parser.execute()
     syntactic_tokens = parser.syntactic_tokens
     syntactic_tokens_length = len(syntactic_tokens)

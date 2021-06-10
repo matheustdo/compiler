@@ -19,4 +19,5 @@ class Code(Enum):
     MF_COMMENT = 'CoMF'
     MF_OPERATOR = 'OpMF'
     MF_STRING = 'CMF'
-    MF_SYNTAX = 'SMF'
+    MF_SYNTAX = 'SYMF'
+    MF_SEMANTIC = "SEMF"
