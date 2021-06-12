@@ -50,9 +50,11 @@ class Parser:
             
             error_token = ErrorToken(line, f'Expected `{expected}` and found `EOF`.', Code.MF_SYNTAX)
             self.syntactic_tokens.append(error_token)
+            self.semantic.semantic_tokens.append(error_token)
         else:
             error_token = ErrorToken(self.token.line_begin_index, f'Expected `{expected}` and found `{self.token.lexeme}`.', Code.MF_SYNTAX)
             self.syntactic_tokens.append(error_token)
+            self.semantic.semantic_tokens.append(error_token)
             self.sync(follow)
 
     def add_custom_error(self, message, follow):
@@ -64,9 +66,11 @@ class Parser:
             
             error_token = ErrorToken(line, message, Code.MF_SYNTAX)
             self.syntactic_tokens.append(error_token)
+            self.semantic.semantic_tokens.append(error_token)
         else:
             error_token = ErrorToken(self.token.line_begin_index, message, Code.MF_SYNTAX)
             self.syntactic_tokens.append(error_token)
+            self.semantic.semantic_tokens.append(error_token)
             self.sync(follow)
 
     def add_error_without_sync(self, expected):
@@ -84,6 +88,7 @@ class Parser:
 
     def advance(self):
         self.syntactic_tokens.append(self.token)
+        self.semantic.semantic_tokens.append(self.token)
         self.tokens_index += 1
         
         if len(self.lexical_tokens) > 0 and self.tokens_index < len(self.lexical_tokens):
@@ -149,17 +154,18 @@ class Parser:
             self.add_error('read` or `print', follow_stm_cmd())
 
     def stm_id(self):
+        read_token = self.last_token()
         if self.verify(first_assign()):
-            self.assign()
+            self.assign(read_token)
         elif self.verify(first_array()):
             self.array()
             self.arrays()
             self.accesses()
-            self.assign()
+            self.assign(read_token)
         elif self.verify(first_access()):
             self.access()
             self.accesses()
-            self.assign()
+            self.assign(read_token)
         elif self.eat_lexeme('('):
             self.args()
 
@@ -175,11 +181,11 @@ class Parser:
         if self.eat_lexeme('local'): 
             self.access()
             self.accesses()
-            self.assign()
+            self.assign(self.last_token())
         elif self.eat_lexeme('global'):
             self.access()
             self.accesses()
-            self.assign()
+            self.assign(self.last_token())
         else:
             self.add_error('local` or `global', follow_stm_scope())
 
@@ -187,13 +193,16 @@ class Parser:
         if self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
+            self.semantic.verify_id_not_declared(self.last_token())
             self.stm_id()
         elif self.verify(first_stm_cmd()):
             self.stm_cmd()
         else:
             self.add_error('local`, `global`, `id`, `print` or `read', follow_var_stm())
 
-    def assign(self):
+    def assign(self, identifier):
+        self.semantic.verify_attribution(identifier)
+
         if self.eat_lexeme('='):
             self.expr()
                 
@@ -448,7 +457,7 @@ class Parser:
 
     def var(self, type):
         if self.eat_code(Code.IDENTIFIER):
-            self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme })
+            self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme, 'conf': 'var' })
             self.arrays()
         else:
             self.add_error('Id', follow_var())
@@ -456,7 +465,7 @@ class Parser:
     def var_list(self, type):
         if self.eat_lexeme(','):
             if self.eat_code(Code.IDENTIFIER):
-                self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme })
+                self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme, 'conf': 'var' })
                 self.arrays()
                 self.var_list(type)
             else:
@@ -612,7 +621,7 @@ class Parser:
 
     def const(self, type):
         if self.eat_code(Code.IDENTIFIER):
-            self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme })
+            self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme, 'conf': 'const' })
             self.arrays()
         else:
             self.add_error('Id', follow_const())
@@ -620,7 +629,7 @@ class Parser:
     def const_list(self, type):
         if self.eat_lexeme(','):
             if self.eat_code(Code.IDENTIFIER):
-                self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme })
+                self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme, 'conf': 'const' })
                 self.arrays()
                 self.const_list(type)
             else:

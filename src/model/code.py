@@ -19,5 +19,5 @@ class Code(Enum):
     MF_COMMENT = 'CoMF'
     MF_OPERATOR = 'OpMF'
     MF_STRING = 'CMF'
-    MF_SYNTAX = 'SYMF'
-    MF_SEMANTIC = "SEMF"
+    MF_SYNTAX = 'SYNTAX_ERROR'
+    MF_SEMANTIC = "SEMANTIC_ERROR"

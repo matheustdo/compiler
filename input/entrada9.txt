@@ -3,8 +3,7 @@
 const
 {
 	int teste, cinco = 5;
-	struct Id a[2][2] = {a, b}, {c, d};
-	alo oxe = 9;
+	int a[2][2] = {a, b}, {c, d};
 	alo oxe = 9;
 }
 
@@ -25,6 +24,7 @@ var
 procedure start()
 {
 	print();
+	oxe = 7;
 	inteiro = 1;
 	a = ponto.x;
 }

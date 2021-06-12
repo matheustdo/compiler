@@ -34,27 +34,34 @@ for valid_file in valid_files:
     syntactic_tokens = parser.syntactic_tokens
     syntactic_tokens_length = len(syntactic_tokens)
 
+    semantic_tokens = semantic.semantic_tokens
+    semantic_tokens_length = len(semantic_tokens)
+    
     output_content = ''
     lexical_errors_amount = 0
     syntactic_errors_amount = 0
+    semantic_errors_amount = 0
 
-    for token_index, token in enumerate(syntactic_tokens):
+    for token_index, token in enumerate(semantic_tokens):
         output_content += str(token)
         if token.code == Code.INVALID_SYMBOL or token.code == Code.MF_COMMENT or token.code == Code.MF_NUMBER or token.code == Code.MF_OPERATOR or token.code == Code.MF_STRING:
             lexical_errors_amount += 1
         if token.code == Code.MF_SYNTAX:
             syntactic_errors_amount += 1
+        if token.code == Code.MF_SEMANTIC:
+            semantic_errors_amount += 1
 
-        if token_index + 1 < syntactic_tokens_length:
+        if token_index + 1 < semantic_tokens_length:
             output_content += '\n'
 
     output_content += '\n\n===================\n'
 
-    if lexical_errors_amount + syntactic_errors_amount > 0:
+    if lexical_errors_amount + syntactic_errors_amount + semantic_errors_amount > 0:
         output_content += 'Your code has a total of:\n'
         output_content += str(lexical_errors_amount) + ' lexical errors.\n'
         output_content += str(syntactic_errors_amount) + ' syntactic errors.\n'
-        print('\033[1;31m> ' + valid_file + ' analyzed and ' + str(lexical_errors_amount + syntactic_errors_amount) + ' errors were found.\033[0;0m')
+        output_content += str(semantic_errors_amount) + ' semantic errors.\n'
+        print('\033[1;31m> ' + valid_file + ' analyzed and ' + str(lexical_errors_amount + syntactic_errors_amount + semantic_errors_amount) + ' errors were found.\033[0;0m')
     else:
         output_content += 'Analysis done successfully! \n0 errors had found.'
         print('\033[0;32m> ' + valid_file + ' analyzed and no errors were found.\033[0;0m')
