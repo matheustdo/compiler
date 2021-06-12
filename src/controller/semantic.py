@@ -345,7 +345,7 @@ class Semantic:
                         return_type = '0.0'
                     elif return_type == 'string':
                         return_type = '" "'
-                    elif return_type == 'bool':
+                    elif return_type == 'boolean':
                         return_type = 'true'
             else:
                 self.add_error(array[init_index_array], 'A procedure does not returns any type:`' + str_function + '`.')
