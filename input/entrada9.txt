@@ -22,6 +22,7 @@ var
 	real numero_real;
 	real numero_real2;
 	int inteiro;
+	int ux;
 }
 
 procedure start()
@@ -33,7 +34,10 @@ procedure start()
 	
 	print();
 	global.inteiro = 1;
+	global.ux = 1;
+	local.ux = 1;
 	ux = 1;
+	oxe1();
 }
 
 procedure oxe1()
