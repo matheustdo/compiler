@@ -71,11 +71,18 @@ class Semantic:
     def end_proc_decl(self):
         if self.proc_key == '':
             return
+            
+        aux_dict = { }
+        params = self.proc_key[(self.proc_key.index('(') + 1):self.proc_key.index(')')]
+        
+        for item in params.split(','):
+            if len(item.split()) > 0:
+                aux_dict[item.split()[1]] = { 'type': item.split()[0], 'conf': 'var' }
 
         if self.proc_key in self.symbols['global'] or self.proc_key in self.symbols:
             self.add_error(self.proc_key_token, 'This function/procedure already exists: `' + self.proc_key + '`')
         else:
-            self.symbols[self.proc_key] = { }
+            self.symbols[self.proc_key] = aux_dict
             self.scope = self.proc_key
 
         self.proc_key_token = None

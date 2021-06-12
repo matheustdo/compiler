@@ -64,13 +64,24 @@ procedure oxe1(int a)
 }
 
 
+function int oxe1(int bbb, real b)
+{
+	var
+	{
+		int aa;
+	}
+	bbb = 5;
+	print();
+	global.inteiro = 1;
+	local.aa = 1;
+}
+
 function int oxe1(int a, real b)
 {
 	var
 	{
 		int aa;
 	}
-	
 	print();
 	global.inteiro = 1;
 	local.aa = 1;
