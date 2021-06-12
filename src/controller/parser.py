@@ -155,17 +155,18 @@ class Parser:
 
     def stm_id(self):
         read_token = self.last_token()
+
         if self.verify(first_assign()):
-            self.assign(read_token)
+            self.assign(read_token, '')
         elif self.verify(first_array()):
             self.array()
             self.arrays()
-            self.accesses()
-            self.assign(read_token)
+            self.accesses('')
+            self.assign(read_token, '')
         elif self.verify(first_access()):
-            self.access()
-            self.accesses()
-            self.assign(read_token)
+            self.access('')
+            self.accesses('')
+            self.assign(read_token, '')
         elif self.eat_lexeme('('):
             self.args()
 
@@ -179,13 +180,13 @@ class Parser:
 
     def stm_scope(self):
         if self.eat_lexeme('local'): 
-            self.access()
-            self.accesses()
-            self.assign(self.last_token())
+            self.access('local')
+            self.accesses('local')
+            self.assign(self.last_token(), 'local')
         elif self.eat_lexeme('global'):
-            self.access()
-            self.accesses()
-            self.assign(self.last_token())
+            self.access('global')
+            self.accesses('global')
+            self.assign(self.last_token(), 'global')
         else:
             self.add_error('local` or `global', follow_stm_scope())
 
@@ -193,15 +194,15 @@ class Parser:
         if self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
-            self.semantic.verify_id_not_declared(self.last_token())
+            self.semantic.verify_id_not_declared(self.last_token(), '')
             self.stm_id()
         elif self.verify(first_stm_cmd()):
             self.stm_cmd()
         else:
-            self.add_error('local`, `global`, `id`, `print` or `read', follow_var_stm())
+            self.add_error('local`, `global`, `Id`, `print` or `read', follow_var_stm())
 
-    def assign(self, identifier):
-        self.semantic.verify_attribution(identifier)
+    def assign(self, identifier, scope):
+        self.semantic.verify_attribution(identifier, scope)
 
         if self.eat_lexeme('='):
             self.expr()
@@ -214,20 +215,22 @@ class Parser:
         else:
             self.add_error('=`, `++` or `--', follow_assign())
 
-    def access(self):
+    def access(self, scope):
         if self.eat_lexeme('.'):
             if self.eat_code(Code.IDENTIFIER):
+                self.semantic.verify_id_not_declared(self.last_token(), scope)
                 self.arrays()
             else:
                 self.add_error('Id', follow_access()) 
         else:
             self.add_error('.', follow_access())
             
-    def accesses(self):
+    def accesses(self, scope):
         if self.eat_lexeme('.'):
             if self.eat_code(Code.IDENTIFIER):
+                self.semantic.verify_id_not_declared(self.last_token(), scope)
                 self.arrays()
-                self.accesses()
+                self.accesses(scope)
             else:
                 self.add_error('Id', follow_accesses())
 
@@ -249,17 +252,17 @@ class Parser:
                 self.add_error(')', follow_id_value()) 
         else:
             self.arrays()
-            self.accesses()
+            self.accesses('')
 
     def log_unary(self):
         if self.eat_lexeme('!'): 
             self.log_unary()
         elif self.eat_lexeme('local'):
-            self.access()
-            self.accesses()
+            self.access('local')
+            self.accesses('local')
         elif self.eat_lexeme('global'):
-            self.access()
-            self.accesses()
+            self.access('global')
+            self.accesses('global')
         elif self.eat_code(Code.IDENTIFIER):
             self.id_value()
         elif self.eat_lexeme('('):
@@ -326,11 +329,11 @@ class Parser:
         if self.eat_lexeme('!'): 
             self.unary()
         elif self.eat_lexeme('local'):
-            self.access()
-            self.accesses()
+            self.access('local')
+            self.accesses('local')
         elif self.eat_lexeme('global'):
-            self.access()
-            self.accesses()
+            self.access('global')
+            self.accesses('global')
         elif self.eat_code(Code.IDENTIFIER):
             self.id_value()
         elif self.eat_lexeme('('):
@@ -574,6 +577,8 @@ class Parser:
             self.add_error('}', follow_func_block())
 
     def start_block(self): 
+        self.semantic.change_scope('start')
+
         if self.eat_lexeme('procedure'):
             if self.eat_lexeme('start'):
                 self.eat_opening('(')
@@ -689,6 +694,7 @@ class Parser:
     def struct_block(self):
         if self.eat_lexeme('struct'):
             if self.eat_code(Code.IDENTIFIER):
+                self.semantic.change_scope(self.last_token().lexeme)
                 self.extends()
 
                 self.eat_opening('{')
@@ -749,6 +755,7 @@ class Parser:
     def proc_decl(self):
         if self.eat_lexeme('procedure'):
             if self.eat_code(Code.IDENTIFIER):
+                self.semantic.create_fp_scope(self.last_token())
                 self.eat_opening('(')
                 self.params()
 
@@ -766,6 +773,7 @@ class Parser:
             self.param_type()
 
             if self.eat_code(Code.IDENTIFIER):
+                self.semantic.create_fp_scope(self.last_token())
                 self.eat_opening('(')
                 self.params()
 
@@ -798,6 +806,8 @@ class Parser:
 
     def program(self):
         self.structs()
+        self.semantic.change_scope('global')
+        
         self.const_block()
         self.var_block()
         self.start_block()
