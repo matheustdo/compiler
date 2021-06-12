@@ -34,10 +34,9 @@ procedure start()
 	
 	print();
 	global.inteiro = 1;
-	global.ux = 1;
-	local.ux = 1;
+	global.ux = 1 ;
+	local.ux = 1 + 9 * 3 * ( 5 * (35*4) + 6);
 	ux = 1;
-	oxe1();
 }
 
 procedure oxe1()
@@ -52,4 +51,27 @@ procedure oxe1()
 	local.aa = 1;
 }
 
+procedure oxe1(int a)
+{
+	var
+	{
+		int aa;
+	}
+	
+	print();
+	global.inteiro = 1;
+	local.aa = 1;
+}
 
+
+function int oxe1(int a, real b)
+{
+	var
+	{
+		int aa;
+	}
+	
+	print();
+	global.inteiro = 1;
+	local.aa = 1;
+}
