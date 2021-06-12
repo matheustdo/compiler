@@ -25,6 +25,7 @@ var
 	int inteiro;
 	int absc;
 	real id;
+	real situacao;
 }
 
 procedure oxe1()
@@ -110,6 +111,8 @@ procedure start()
 	
 	print();
 	global.inteiro = 1;
-	local.ux = local.id + oxe1(funcaoo(coisa, ux, outra(ux, ux, ux)), ue, ue, ue) + 1/3 + 9 * 3 * ( 5 * (35*4) + 6);
+	local.ux = local.id + oxe1(funcaoo(global.situacao, ux, outra(ux, ux, ux)), ue, ue, ue) + 1/3 + 9 * 3 * ( 5 * (35*4) + 6);
 	ux = 1;
+	ux = oxe1(ux,ux,ux,ux);
+	abc.ass = 32;
 }

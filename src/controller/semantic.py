@@ -45,7 +45,19 @@ class Semantic:
             self.add(self.scope, identifier.lexeme, attributes)
 
     def verify_id_not_declared(self, identifier, scope):
-        if hasattr(identifier, 'lexeme'):
+        is_a_function = False
+
+        for key in self.symbols:
+            try:
+                proc_key = key[:(key.index('('))]
+                if identifier.lexeme in proc_key:
+                    is_a_function = True
+                    break
+            except:
+                is_a_function = False
+
+        
+        if not is_a_function and hasattr(identifier, 'lexeme'):
             if scope == 'global':
                 if not identifier.lexeme in self.symbols[scope]:
                     self.add_error(identifier, 'Identifier not declared: `global.' + identifier.lexeme + '`')
@@ -57,18 +69,28 @@ class Semantic:
                     self.add_error(identifier, 'Identifier not declared: `' + identifier.lexeme + '`')
 
     def verify_attribution(self, identifier, scope):
-        if scope == 'global':
-            if identifier.lexeme in self.symbols[scope]:
-                if (self.symbols[scope][identifier.lexeme]['conf'] == 'const'):
-                    self.add_error(identifier, 'Const attribution is not allowed: `global.' + identifier.lexeme + '`')
-                elif (self.symbols[scope][identifier.lexeme]['conf'] == 'func'):
-                    self.add_error(identifier, 'Func attribution is not allowed: `global.' + identifier.lexeme + '`')
+        is_a_function = False
+
+        for key in self.symbols:
+            try:
+                proc_key = key[:(key.index('('))]
+                if identifier.lexeme in proc_key:
+                    is_a_function = True
+                    break
+            except:
+                is_a_function = False
+        
+        if is_a_function:
+            self.add_error(identifier, 'Func attribution is not allowed: `' + identifier.lexeme + '`')
         else:
-            if identifier.lexeme in self.symbols[self.scope]:
-                if (self.symbols[self.scope][identifier.lexeme]['conf'] == 'const'):
-                    self.add_error(identifier, 'Const attribution is not allowed: `local.' + identifier.lexeme + '`')
-                elif (self.symbols[self.scope][identifier.lexeme]['conf'] == 'func'):
-                    self.add_error(identifier, 'Func attribution is not allowed: `local.' + identifier.lexeme + '`')
+            if scope == 'global':
+                if identifier.lexeme in self.symbols[scope]:
+                    if (self.symbols[scope][identifier.lexeme]['conf'] == 'const'):
+                        self.add_error(identifier, 'Const attribution is not allowed: `global.' + identifier.lexeme + '`')
+            else:
+                if identifier.lexeme in self.symbols[self.scope]:
+                    if (self.symbols[self.scope][identifier.lexeme]['conf'] == 'const'):
+                        self.add_error(identifier, 'Const attribution is not allowed: `local.' + identifier.lexeme + '`')
 
     def add_error(self, token, description):
         error_token = ErrorToken(token.line_begin_index, description, Code.MF_SEMANTIC)
@@ -270,10 +292,10 @@ class Semantic:
         open_amount = 0
         str_function = array[init_index_array].lexeme
         first_open = True
-        look_end = False
         function_name = array[init_index_array].lexeme
         child_error = False
         error = False
+        has_scope = ''
 
         while end_index_array < len(array):
             if not first_open and open_amount == 0:
@@ -290,17 +312,26 @@ class Semantic:
                 else:
                     str_function += ')'
                     open_amount -= 1
-            elif not look_end and array[end_index_array].code == Code.IDENTIFIER:
+            elif array[end_index_array].lexeme == 'global':
+                end_index_array += 1
+                has_scope = 'global'
+            elif array[end_index_array].lexeme == 'local':
+                end_index_array += 1
+                has_scope = 'local'
+            elif array[end_index_array].code == Code.IDENTIFIER:
                 if end_index_array + 1 < len(array):
                     if array[end_index_array + 1].lexeme == '(':
                         opened_function = self.open_function(end_index_array, array)
                         end_index_array = opened_function[0] - 1
                         str_function += opened_function[1]
                         child_error = opened_function[2]
-                    elif open_amount > 0 and array[end_index_array].lexeme in self.symbols[self.scope]:
-                        str_function += self.symbols[self.scope][array[end_index_array].lexeme]['type']
-                    else:
-                        look_end = True
+                    elif open_amount > 0:
+                        if has_scope == 'global':
+                            if array[end_index_array].lexeme in self.symbols['global']:
+                                str_function += self.symbols['global'][array[end_index_array].lexeme]['type']
+                        elif array[end_index_array].lexeme in self.symbols[self.scope]:
+                            str_function += self.symbols[self.scope][array[end_index_array].lexeme]['type']
+                    has_scope = ''
             elif array[end_index_array].lexeme == ',' and open_amount > 0:
                 str_function += ','
             end_index_array += 1  
@@ -311,7 +342,7 @@ class Semantic:
         found_key = ''
         #found_params = function_name +'('
         return_type = str_function
-
+        
         for key in self.symbols:
             try:
                 proc_key = key[:(key.index('('))]
