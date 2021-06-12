@@ -20,6 +20,7 @@ class Semantic:
         self.proc_key = ''
         self.expr = ''
         self.expr_array = []
+        self.func_return = -1
 
     def add(self, scope, key, item):
         self.symbols[scope][key] = item
@@ -102,6 +103,7 @@ class Semantic:
 
         self.proc_key_token = None
         self.proc_key = ''
+        self.func_return = -1
 
     def init_proc_decl(self, identifier):
         if identifier.lexeme in self.symbols['global']:
