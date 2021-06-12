@@ -1,3 +1,4 @@
+from os import read
 from src.model.error_token import ErrorToken
 from src.model.code import Code
 from src.definitions.firsts import *
@@ -219,7 +220,11 @@ class Parser:
 
     def access(self, scope):
         if self.eat_lexeme('.'):
+            if self.semantic.reading_expr:
+                self.semantic.add_expr('.', self.last_token())
             if self.eat_code(Code.IDENTIFIER):
+                if self.semantic.reading_expr:
+                    self.semantic.add_expr(self.last_token().lexeme, self.last_token())
                 self.semantic.verify_id_not_declared(self.last_token(), scope)
                 self.arrays()
             else:
@@ -229,7 +234,11 @@ class Parser:
             
     def accesses(self, scope):
         if self.eat_lexeme('.'):
+            if self.semantic.reading_expr:
+                self.semantic.add_expr('.', self.last_token())
             if self.eat_code(Code.IDENTIFIER):
+                if self.semantic.reading_expr:
+                    self.semantic.add_expr(self.last_token().lexeme, self.last_token())
                 self.semantic.verify_id_not_declared(self.last_token(), scope)
                 self.arrays()
                 self.accesses(scope)
@@ -238,6 +247,8 @@ class Parser:
 
     def args_list(self):
         if self.eat_lexeme(','):
+            if self.semantic.reading_expr:
+                self.semantic.add_expr(',', self.last_token())
             self.expr()
             self.args_list()
             
@@ -248,9 +259,14 @@ class Parser:
 
     def id_value(self):
         if self.eat_lexeme('('):
+            if self.semantic.reading_expr:
+                self.semantic.add_expr('(', self.last_token())
             self.args()
 
-            if not self.eat_lexeme(')'):
+            if self.eat_lexeme(')'):
+                if self.semantic.reading_expr:
+                    self.semantic.add_expr(')', self.last_token())
+            else:
                 self.add_error(')', follow_id_value()) 
         else:
             self.arrays()
@@ -332,9 +348,11 @@ class Parser:
             self.semantic.add_expr('!', self.last_token())
             self.unary()
         elif self.eat_lexeme('local'):
+            self.semantic.add_expr('local', self.last_token())
             self.access('local')
             self.accesses('local')
         elif self.eat_lexeme('global'):
+            self.semantic.add_expr('global', self.last_token())
             self.access('global')
             self.accesses('global')
         elif self.eat_code(Code.IDENTIFIER):
@@ -597,22 +615,6 @@ class Parser:
         if not self.eat_lexeme('}'):
             self.add_error('}', follow_func_block())
 
-    def start_block(self): 
-        self.semantic.change_scope('start')
-
-        if self.eat_lexeme('procedure'):
-            if self.eat_lexeme('start'):
-                self.eat_opening('(')
-
-                if self.eat_lexeme(')'):
-                    self.func_block()
-                else:
-                    self.add_error(')', follow_start_block()) 
-            else:
-                self.add_error('start', follow_start_block())
-        else:
-            self.add_custom_error('The procedure `start` has not found.', follow_start_block())
-
     def array_expr(self):
         if self.eat_lexeme(','):
             self.array_def()
@@ -790,13 +792,26 @@ class Parser:
                     self.func_block()
                 else:
                     self.add_error(')', follow_proc_decl())
+            elif self.eat_lexeme('start'):
+                self.semantic.change_scope('start')
+
+                self.eat_opening('(')
+
+                if self.eat_lexeme(')'):
+                    self.func_block()
+                else:
+                    self.add_error(')', follow_start_block()) 
+            elif self.verify(follow_proc_decl()):
+                self.add_error('Id`', follow_proc_decl())
             else:
-                self.add_error('Id', follow_proc_decl())
+                self.add_custom_error('The procedure `start` has not found.', follow_start_block())
         else:
             self.add_error('procedure', follow_proc_decl())
 
     def func_decl(self):
         if self.eat_lexeme('function'):
+            if self.verify(first_param_type()):
+                self.semantic.func_return = self.token;
             self.param_type()
 
             if self.eat_code(Code.IDENTIFIER):
@@ -841,7 +856,6 @@ class Parser:
         
         self.const_block()
         self.var_block()
-        self.start_block()
         self.decls()
 
     def execute(self):

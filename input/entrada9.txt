@@ -14,6 +14,7 @@ const
 	int teste, cinco = 5;
 	int a[2][2] = {a, b}, {c, d};
 	alo oxe = 9;
+	int qo = 5;
 }
 var
 {
@@ -22,27 +23,15 @@ var
 	real numero_real;
 	real numero_real2;
 	int inteiro;
-	int ux;
-}
-
-procedure start()
-{
-	var
-	{
-		int ux;
-	}
-	
-	print();
-	global.inteiro = 1;
-	global.ux = 1 ;
-	local.ux = 1 + 9 * 3 * ( 5 * (35*4) + 6);
-	ux = 1;
+	int absc;
+	real id;
 }
 
 procedure oxe1()
 {
 	var
 	{
+		int oxe2;
 		int aa;
 	}
 	
@@ -63,6 +52,17 @@ procedure oxe1(int a)
 	local.aa = 1;
 }
 
+function int oxe1(int b3, int b4, int b5, int b6)
+{
+	var
+	{
+		int aa;
+	}
+	
+	print();
+	global.inteiro = 1;
+	local.aa = 1;
+}
 
 function int oxe1(int bbb, real c, real b)
 {
@@ -76,7 +76,7 @@ function int oxe1(int bbb, real c, real b)
 	local.aa = 1;
 }
 
-function int oxe1( real b)
+function int funcaoo( real b, int b34, int ba082)
 {
 	var
 	{
@@ -85,4 +85,31 @@ function int oxe1( real b)
 	print();
 	global.inteiro = 1;
 	local.aa = 1;
+}
+
+function int outra( int b, int aaaaa,int f2)
+{
+	var
+	{
+		int aa;
+	}
+	print();
+	global.inteiro = 1;
+	local.aa = 1;
+}
+
+procedure start()
+{
+	var
+	{
+		int ux;
+		real coisa;
+		int id;
+		int ue;
+	}
+	
+	print();
+	global.inteiro = 1;
+	local.ux = local.id + oxe1(funcaoo(coisa, ux, outra(ux, ux, ux)), ue, ue, ue) + 1/3 + 9 * 3 * ( 5 * (35*4) + 6);
+	ux = 1;
 }
