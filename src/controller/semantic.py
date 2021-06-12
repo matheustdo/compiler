@@ -74,14 +74,29 @@ class Semantic:
             
         aux_dict = { }
         params = self.proc_key[(self.proc_key.index('(') + 1):self.proc_key.index(')')]
+        type_list = ''
         
         for item in params.split(','):
             if len(item.split()) > 0:
                 aux_dict[item.split()[1]] = { 'type': item.split()[0], 'conf': 'var' }
-
+                type_list += item.split()[0] + ' '
+        proc_name = self.proc_key[:self.proc_key.index('(')] + '('
+        
         if self.proc_key in self.symbols['global'] or self.proc_key in self.symbols:
             self.add_error(self.proc_key_token, 'This function/procedure already exists: `' + self.proc_key + '`')
         else:
+            for key in self.symbols:
+                if proc_name in key:
+                    params2 = key[(key.index('(') + 1):key.index(')')]
+                    type_list2 = ''
+
+                    for item2 in params2.split(','):
+                        if len(item2.split()) > 0:
+                            type_list2 += item2.split()[0] + ' '
+                    if type_list == type_list2:
+                        self.add_error(self.proc_key_token, 'This function/procedure already exists: `' + self.proc_key + '`')
+                        break
+
             self.symbols[self.proc_key] = aux_dict
             self.scope = self.proc_key
 

@@ -64,7 +64,7 @@ procedure oxe1(int a)
 }
 
 
-function int oxe1(int bbb, real b)
+function int oxe1(int bbb, real c, real b)
 {
 	var
 	{
@@ -76,7 +76,7 @@ function int oxe1(int bbb, real b)
 	local.aa = 1;
 }
 
-function int oxe1(int a, real b)
+function int oxe1( real b)
 {
 	var
 	{
