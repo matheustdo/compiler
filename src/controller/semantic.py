@@ -273,7 +273,6 @@ class Semantic:
                 if is_int + is_real + is_boolean + is_string > 1:
                     self.add_error(identifier, 'There are more than one type in a single expression `' + self.expr + '`. Conversions are not allowed here.')
                 
-
         self.expr = ''
         self.expr_array = []
         self.reading_expr = False
