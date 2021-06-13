@@ -468,7 +468,9 @@ class Parser:
     def array(self):
         if self.eat_lexeme('['):
             if self.verify(first_expr()):
+                self.semantic.init_expr()
                 self.expr()
+                self.semantic.verify_is_int(self.last_token())
 
             if not self.eat_lexeme(']'):
                 self.add_error(']', follow_array()) 
@@ -565,7 +567,10 @@ class Parser:
         elif self.verify(first_var_stm()):
             self.var_stm()
         elif self.eat_lexeme('return'):
+            self.semantic.return_found = True
+            self.semantic.init_expr()
             self.expr()
+            self.semantic.verify_return_type(self.last_token())
             
             if not self.eat_lexeme(';'):
                 self.add_error(';', follow_func_normal_stm()) 
@@ -613,7 +618,9 @@ class Parser:
         self.var_block()
         self.func_stms()
         
-        if not self.eat_lexeme('}'):
+        if self.eat_lexeme('}'):
+            self.semantic.verify_function_returned(self.last_token())
+        else:
             self.add_error('}', follow_func_block())
 
     def array_expr(self):
@@ -812,6 +819,7 @@ class Parser:
 
     def func_decl(self):
         if self.eat_lexeme('function'):
+            self.semantic.reading_function = True
             if self.verify(first_param_type()):
                 self.semantic.func_return = self.token;
             self.param_type()
