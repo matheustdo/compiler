@@ -14,6 +14,7 @@ class Parser:
         self.token = None
         self.syntactic_tokens = []
         self.semantic = semantic
+        self.start_found = False
 
         if len(lexical_tokens) > 0:
             self.token = lexical_tokens[0]
@@ -793,6 +794,7 @@ class Parser:
                 else:
                     self.add_error(')', follow_proc_decl())
             elif self.eat_lexeme('start'):
+                self.start_found = True
                 self.semantic.change_scope('start')
 
                 self.eat_opening('(')
@@ -804,7 +806,7 @@ class Parser:
             elif self.verify(follow_proc_decl()):
                 self.add_error('Id`', follow_proc_decl())
             else:
-                self.add_custom_error('The procedure `start` has not found.', follow_start_block())
+                self.add_error('Id', follow_proc_decl())
         else:
             self.add_error('procedure', follow_proc_decl())
 
@@ -868,6 +870,9 @@ class Parser:
         if not self.verify(first_program()):
             self.add_error('procedure', follow_program())
         self.decls()
+
+        if not self.start_found:
+            self.add_custom_error('The procedure `start` has not found.', follow_start_block())
 
     def execute(self):
         self.program()
