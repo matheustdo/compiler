@@ -209,7 +209,7 @@ class Parser:
         if self.eat_lexeme('='):
             self.semantic.init_expr()
             self.expr()
-            self.semantic.verify_assign_type(identifier)
+            self.semantic.verify_assign_type(identifier, scope)
                 
             if not self.eat_lexeme(';'):
                 self.add_error(';', follow_assign())   

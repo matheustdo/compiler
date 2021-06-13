@@ -156,17 +156,24 @@ class Semantic:
 
         self.proc_key_token = identifier
         self.proc_key = identifier.lexeme
-    
-    def verify_assign_type(self, identifier):
-        if identifier.lexeme in self.symbols[self.scope]:
-            x = re.findall(LETTER, self.expr)
+
+    def get_type_expression(self, identifier, expr_array, scope):
+        if identifier.lexeme in self.symbols[scope]:
+            expr = ''
+            for x in expr_array:
+                expr += x.lexeme
+            x = re.findall(LETTER, expr)
             
             if len(x) == 0:
-                if self.symbols[self.scope][identifier.lexeme]['type'] == 'int':
-                    if not isinstance(eval(self.expr), int):
-                        self.add_error(identifier, 'You cannot assign `' + str(eval(self.expr)) +'` to `int`')
-                elif not self.symbols[self.scope][identifier.lexeme]['type'] == 'real':
-                    self.add_error(identifier, 'You cannot assign `' + str(eval(self.expr)) +'` to ' + '`' + self.symbols[self.scope][identifier.lexeme]['type'] + '`')
+                if self.symbols[scope][identifier.lexeme]['type'] == 'int':
+                    if isinstance(eval(expr), int):
+                        return 'int'
+                    else:
+                        self.add_error(identifier, 'You cannot assign `' + str(eval(expr)) +'` to `int`')
+                elif self.symbols[scope][identifier.lexeme]['type'] == 'real':
+                    return 'real'
+                else:
+                    self.add_error(identifier, 'You cannot assign `' + str(eval(expr)) +'` to ' + '`' + self.symbols[scope][identifier.lexeme]['type'] + '`')
             else:
                 is_int = 0
                 is_real = 0
@@ -174,10 +181,10 @@ class Semantic:
                 is_string = 0
                 last_scope = ''
                 index = 0
-                array_len = len(self.expr_array)
+                array_len = len(expr_array)
                 
                 while index < array_len:
-                    token = self.expr_array[index]
+                    token = expr_array[index]
                     if token.lexeme == 'global':
                         last_scope = 'global'
                     elif token.lexeme == 'local':
@@ -196,15 +203,11 @@ class Semantic:
 
                         if proc_declared:
                             initial_index = index
-                            resp = self.open_function(index, self.expr_array, True)
+                            resp = self.open_function(identifier, index, expr_array)
                             last_index = resp[0]
 
-                            sara = ''
-                            for a in self.expr_array:
-                                sara += a.lexeme + ' '
-
-                            part1 = self.expr_array[0:initial_index]
-                            part2 = self.expr_array[last_index:array_len]
+                            part1 = expr_array[0:initial_index]
+                            part2 = expr_array[last_index:array_len]
                             new_expr_array = []
 
                             for part in part1:
@@ -227,12 +230,8 @@ class Semantic:
 
                             for part in part2:
                                 new_expr_array.append(part)
-
-                            sara = ''
-                            for a in new_expr_array:
-                                sara += a.lexeme + ' '
                                 
-                            self.expr_array = new_expr_array
+                            expr_array = new_expr_array
                             array_len = len(new_expr_array)
                             index = len(part1) - 1
 
@@ -251,8 +250,9 @@ class Semantic:
                                     is_boolean = 1
                                 elif self.symbols[read_scope][token.lexeme]['type'] == 'string':
                                     is_string = 1
-                            else:  
-                                self.add_error(identifier, 'Identifier not declared: `' + token.lexeme + '`')
+                            else:
+                                if not ('(' in token.lexeme and ')' in token.lexeme):
+                                    self.add_error(identifier, 'Identifier not declared: `' + token.lexeme + '`')
                             
                             if last_scope == 'global':
                                 last_scope = ''
@@ -270,9 +270,34 @@ class Semantic:
                     
                     index += 1
 
+                expr = ''
+
+                for x in expr_array:
+                    expr += x.lexeme
+
                 if is_int + is_real + is_boolean + is_string > 1:
-                    self.add_error(identifier, 'There are more than one type in a single expression `' + self.expr + '`. Conversions are not allowed here.')
+                    self.add_error(identifier, 'There are more than one types in a single expression `' + expr + '`. Conversions are not allowed here.')
+                elif is_int == 1:
+                    return 'int'
+                elif is_real == 1:
+                    return 'real'
+                elif is_boolean == 1:
+                    return 'boolean'
+                elif is_string == 1:
+                    return 'string'
                 
+            return 'invalid'
+    
+    def verify_assign_type(self, identifier, scope):
+        if scope == 'local' or scope == '':
+            scope = self.scope
+            
+        if identifier.lexeme in self.symbols[scope]:
+            type_found = self.get_type_expression(identifier, self.expr_array, scope)
+            
+            if not type_found == 'invalid' and self.symbols[scope][identifier.lexeme]['type'] != type_found:
+                self.add_error(identifier, 'You cannot assign `' + type_found +'` to ' + '`' + self.symbols[scope][identifier.lexeme]['type'] + '`')
+        
         self.expr = ''
         self.expr_array = []
         self.reading_expr = False
@@ -286,61 +311,81 @@ class Semantic:
         self.expr_array = []
         self.reading_expr = True
 
-    def open_function(self, init_index_array, array, is_first=False):
+    def open_function(self, identifier, init_index_array, array):
         end_index_array = init_index_array + 1
         open_amount = 0
-        str_function = array[init_index_array].lexeme
         first_open = True
-        function_name = array[init_index_array].lexeme
-        child_error = False
+        func_array = [array[init_index_array]]
+        func_len = len(array)
         error = False
-        has_scope = ''
-
-        while end_index_array < len(array):
+        child_error = False
+        func_str = array[init_index_array].lexeme
+        function_name = array[init_index_array].lexeme
+        
+        # gets the function array in the initial array
+        while end_index_array < func_len:
+            token = array[end_index_array]
             if not first_open and open_amount == 0:
                 break
-            elif array[end_index_array].lexeme == '(':
+            elif token.lexeme == '(':
                 if first_open or open_amount > 0:
-                    str_function += '('
                     open_amount += 1
                 elif open_amount == 0:
                     break
-            elif array[end_index_array].lexeme == ')':
+            elif token.lexeme == ')':
                 if open_amount == 0:
                     break
                 else:
-                    str_function += ')'
                     open_amount -= 1
-            elif array[end_index_array].lexeme == 'global':
-                end_index_array += 1
-                has_scope = 'global'
-            elif array[end_index_array].lexeme == 'local':
-                end_index_array += 1
-                has_scope = 'local'
-            elif array[end_index_array].code == Code.IDENTIFIER:
-                if end_index_array + 1 < len(array):
-                    if array[end_index_array + 1].lexeme == '(':
-                        opened_function = self.open_function(end_index_array, array)
-                        end_index_array = opened_function[0] - 1
-                        str_function += opened_function[1]
-                        child_error = opened_function[2]
-                    elif open_amount > 0:
-                        if has_scope == 'global':
-                            if array[end_index_array].lexeme in self.symbols['global']:
-                                str_function += self.symbols['global'][array[end_index_array].lexeme]['type']
-                        elif array[end_index_array].lexeme in self.symbols[self.scope]:
-                            str_function += self.symbols[self.scope][array[end_index_array].lexeme]['type']
-                    has_scope = ''
-            elif array[end_index_array].lexeme == ',' and open_amount > 0:
-                str_function += ','
-            end_index_array += 1  
+
+            func_array.append(token)
+            end_index_array += 1
             first_open = False
+
+        params_index = 3
+        cur_param = [func_array[2]]
+        open_amount = 0
+        func_array_w_types = [func_array[0], func_array[1]]
+        func_str += '('
+        
+        while params_index < len(func_array):
+            token = func_array[params_index]
+            
+            if token.lexeme == '(':
+                open_amount += 1
+                cur_param.append(token)
+            elif token.lexeme == ')' and open_amount > 0:
+                open_amount -= 1
+                cur_param.append(token)
+            elif open_amount == 0 and (token.lexeme == ',' or token.lexeme == ')'):
+                param_type = self.get_type_expression(identifier, cur_param, self.scope)
+                func_str += param_type
+                func_str += token.lexeme
+
+                tk = ''
+                if param_type == 'int':
+                    tk = Token('0', Code.NUMBER, identifier.line_begin_index, identifier.line_end_index, identifier.column_begin_index, identifier.column_end_index)
+                elif param_type == 'real':
+                    tk = Token('0.0', Code.NUMBER, identifier.line_begin_index, identifier.line_end_index, identifier.column_begin_index, identifier.column_end_index)
+                elif param_type == 'string':
+                    tk = Token('" "', Code.KEYWORD, identifier.line_begin_index, identifier.line_end_index, identifier.column_begin_index, identifier.column_end_index)
+                elif param_type == 'boolean':
+                    tk = Token('true', Code.KEYWORD, identifier.line_begin_index, identifier.line_end_index, identifier.column_begin_index, identifier.column_end_index)
+                else:
+                    tk = Token('object', Code.IDENTIFIER, identifier.line_begin_index, identifier.line_end_index, identifier.column_begin_index, identifier.column_end_index)
+                
+                func_array_w_types.append(tk)
+                func_array_w_types.append(token)
+                cur_param = []
+            else:
+                cur_param.append(token)
+
+            params_index += 1
 
         #verify if the function exists:
         func_declared = False
         found_key = ''
-        #found_params = function_name +'('
-        return_type = str_function
+        return_type = func_str
         
         for key in self.symbols:
             try:
@@ -358,7 +403,7 @@ class Semantic:
                             if i + 1< len(splitted_params):
                                 params_str += ','
                                 
-                    if function_name + '(' + params_str + ')' == str_function:
+                    if function_name + '(' + params_str + ')' == func_str:
                         func_declared = True
                         found_key = key
                         break
@@ -368,24 +413,23 @@ class Semantic:
         if func_declared:
             if '@return' in self.symbols[found_key]:
                 return_type = self.symbols[found_key]['@return']
-                if is_first:
-                    if return_type == 'int':
-                        return_type = '0'
-                    elif return_type == 'real':
-                        return_type = '0.0'
-                    elif return_type == 'string':
-                        return_type = '" "'
-                    elif return_type == 'boolean':
-                        return_type = 'true'
+                if return_type == 'int':
+                    return_type = '0'
+                elif return_type == 'real':
+                    return_type = '0.0'
+                elif return_type == 'string':
+                    return_type = '" "'
+                elif return_type == 'boolean':
+                    return_type = 'true'
             else:
-                self.add_error(array[init_index_array], 'A procedure does not returns any type:`' + str_function + '`.')
+                self.add_error(array[init_index_array], 'A procedure does not returns any type:`' + func_str + '`.')
         elif not child_error:
-            self.add_error(array[init_index_array], 'This function does not exists:`' + str_function + '`.')
+            self.add_error(array[init_index_array], 'This function does not exists:`' + func_str + '`.')
             error = True
-
 
         if not error:
             error = child_error
+            
         return [end_index_array, return_type, error]
 
     def log(self):
