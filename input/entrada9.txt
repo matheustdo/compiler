@@ -113,7 +113,7 @@ procedure start()
 	ux = outra(184 + 948+ local.ux, 5 *3 + outra(outra(2,2,2),5,2),3);
 	print();
 	global.inteiro = 1;
-	local.ux = local.id + oxe1(funcaoo(global.situacao, ux, outra(ux, ux, ux)), ue, ue, ue) + 1/3 + 9 * 3 * ( 5 * (35*4) + 6);
+	local.ux = local.id +  oxe1(funcaoo(global.situacao, ux, outra(ux, ux, ux)), ue, ue, ue) + 1/3 + 9 * 3 * ( 5 * (35*4) + 6);
 	ux = 1;
 	global.ux = 5.5 + 3.3;
 	ux = oxe1(ux,ux,ux,ux);
