@@ -851,11 +851,22 @@ class Parser:
             self.structs()
 
     def program(self):
+        if not self.verify(first_program()):
+            self.add_error('struct`, `const`, `var` or `procedure', follow_program())
         self.structs()
+
         self.semantic.change_scope('global')
-        
+
+        if not self.verify(first_program()):
+            self.add_error('const`, `var` or `procedure', follow_program())
         self.const_block()
+
+        if not self.verify(first_program()):
+            self.add_error('var` or `procedure', follow_program())
         self.var_block()
+
+        if not self.verify(first_program()):
+            self.add_error('procedure', follow_program())
         self.decls()
 
     def execute(self):
