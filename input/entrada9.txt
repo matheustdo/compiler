@@ -1,10 +1,12 @@
-// Arquivo de Entrada
+/*
+ * Arquivo sem erros
+ */
 
 struct Focus {
 	var
 		{
 			int cim;
-			int cim;
+			boolean aff;
 		}
 }
 
@@ -91,6 +93,11 @@ function int oxe1(int bbb, real c, real b)
 	return 5;
 }
 
+function int oxe1(int bbb, Focus c, int b4, int cccc)
+{
+	return 5;
+}
+
 function int funcaoo( real b, int b34, int ba082)
 {
 	var
@@ -128,16 +135,21 @@ procedure start()
 		int ue;
 		int agora;
 		boolean neto;
+		Teste algo;
+		Teste agoranao;
 	}
 	ux = outra(184 + 948+ local.ux, 5 *3 + outra(outra(2,2,2),5,2),3);
 	print();
 	global.agora.ba = 5;
-	global.agora.fff.cima = 5;
+	global.agora.fff.cim = 5;
+	global.agora.fff.aff = true || false;
 	global.inteiro = 1;
+	agoranao.ba = 5;
 	local.ux = local.id +  oxe1(funcaoo(global.situacao, ux, outra(ux, ux, ux)), ue, ue, ue) + 1/3 + 9 * 3 * ( 5 * (35*4) + 6);
 	ux = 1;
 	ux = local.ux;
 	global.ux = 5.5 + 3.3;
-	ux = oxe1(ux,ux,ux,ux);
+	ux = oxe1(ux,ux,ux,ux) + algo.ba;
+	ux = oxe1(algo.ba, global.agora.fff, 3, 5*3);
 	ux = ux + 2;
 }

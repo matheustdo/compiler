@@ -26,6 +26,10 @@ class Semantic:
         self.func_return = -1
         self.return_found = False
         self.reading_function = False
+        self.access = ''
+        self.reading_access = False
+        self.access_token = ''
+        self.access_assign = ''
 
     def add(self, scope, key, item):
         self.symbols[scope][key] = item
@@ -48,28 +52,29 @@ class Semantic:
             self.add(self.scope, identifier.lexeme, attributes)
 
     def verify_id_not_declared(self, identifier, scope):
-        is_a_function = False
+        if not self.reading_access:
+            is_a_function = False
 
-        for key in self.symbols:
-            try:
-                proc_key = key[:(key.index('('))] + '('
-                if identifier.lexeme + '(' == proc_key:
-                    is_a_function = True
-                    break
-            except:
-                is_a_function = False
+            for key in self.symbols:
+                try:
+                    proc_key = key[:(key.index('('))] + '('
+                    if identifier.lexeme + '(' == proc_key:
+                        is_a_function = True
+                        break
+                except:
+                    is_a_function = False
 
-        
-        if not is_a_function and hasattr(identifier, 'lexeme'):
-            if scope == 'global':
-                if not identifier.lexeme in self.symbols[scope]:
-                    self.add_error(identifier, 'Identifier not declared: `global.' + identifier.lexeme + '`')
-            elif scope == 'local':
-                if not identifier.lexeme in self.symbols[self.scope]:
-                    self.add_error(identifier, 'Identifier not declared: `local.' + identifier.lexeme + '`')
-            else:
-                if not identifier.lexeme in self.symbols[self.scope] and not identifier.lexeme in self.symbols['global']:
-                    self.add_error(identifier, 'Identifier not declared: `' + identifier.lexeme + '`')
+            
+            if not is_a_function and hasattr(identifier, 'lexeme'):
+                if scope == 'global':
+                    if not identifier.lexeme in self.symbols[scope]:
+                        self.add_error(identifier, 'Identifier not declared: `global.' + identifier.lexeme + '`')
+                elif scope == 'local':
+                    if not identifier.lexeme in self.symbols[self.scope]:
+                        self.add_error(identifier, 'Identifier not declared: `local.' + identifier.lexeme + '`')
+                else:
+                    if not identifier.lexeme in self.symbols[self.scope] and not identifier.lexeme in self.symbols['global']:
+                        self.add_error(identifier, 'Identifier not declared: `' + identifier.lexeme + '`')
 
     def verify_attribution(self, identifier, scope):
         is_a_function = False
@@ -161,21 +166,27 @@ class Semantic:
         self.proc_key_token = identifier
         self.proc_key = identifier.lexeme
 
-    def get_type_expression(self, identifier, expr_array, scope):
+    def get_type_expression(self, identifier, expr_array):
         expr = ''
+        custom_type = ''
         
         for x in expr_array:
-            expr += x.lexeme
+            if hasattr(x, 'lexeme'):
+                expr += x.lexeme
 
         x = re.findall(LETTER, expr)
-
+        
         if len(x) == 0:        
             if any(l_and_r in expr for l_and_r in LOGICAL_AND_RELATIONAL) > 0:
                 return 'boolean'
-            elif isinstance(eval(expr), int):
-                return 'int'
             else:
-                return 'real'
+                try:
+                    if isinstance(eval(expr), int):
+                        return 'int'
+                    else:
+                        return 'real'
+                except:
+                    return 'invalid'
             """ if self.symbols[scope][identifier.lexeme]['type'] == 'int':
                 if isinstance(eval(expr), int):
                     return 'int'
@@ -251,33 +262,47 @@ class Semantic:
                         index = len(part1) - 1
 
                     else:
-                        read_scope = self.scope
+                        new_index = index
+                        access_list = last_scope
 
-                        if last_scope == 'global':
-                            read_scope = 'global'
-
-                        if token.lexeme in self.symbols[read_scope]:
-                            if self.symbols[read_scope][token.lexeme]['type'] == 'int':
-                                is_int = 1
-                            elif self.symbols[read_scope][token.lexeme]['type'] == 'real':
-                                is_real = 1
-                            elif self.symbols[read_scope][token.lexeme]['type'] == 'boolean':
-                                is_boolean = 1
-                            elif self.symbols[read_scope][token.lexeme]['type'] == 'string':
-                                is_string = 1
-                        else:
-                            if not ('(' in token.lexeme and ')' in token.lexeme):
-                                self.add_error(identifier, 'Identifier not declared: `' + token.lexeme + '`')
+                        if last_scope == 'global' or last_scope == 'local':
+                            access_list += '.'
                         
-                        if last_scope == 'global':
-                            last_scope = ''
-                        elif last_scope == 'local':
-                            last_scope = ''
+                        while new_index < array_len:
+                            if expr_array[new_index].code == Code.IDENTIFIER:
+                                access_list += expr_array[new_index].lexeme
+                            elif expr_array[new_index].lexeme == '.':
+                                access_list += '.'
+                            else:
+                                break
+                            new_index += 1
+                        
+                        found_type = self.get_access_type(access_list, token)
+                        
+                        if found_type == 'int':
+                            is_int = 1
+                        elif found_type == 'real':
+                            is_real = 1
+                        elif found_type == 'boolean':
+                            is_boolean = 1
+                        elif found_type == 'string':
+                            is_string = 1
+                        else:
+                            custom_type = found_type
+                        """ else:
+                            if not ('(' in token.lexeme and ')' in token.lexeme):
+                                self.add_error(identifier, 'Identifier not declared: `' + token.lexeme + '`') """
+                        
+                        index = new_index
+                        last_scope = ''
                 elif token.code == Code.NUMBER:
-                    if isinstance(eval(token.lexeme), int):
-                        is_int = 1
-                    else:
-                        is_real = 1
+                    try:
+                        if isinstance(eval(token.lexeme), int):
+                            is_int = 1
+                        else:
+                            is_real = 1
+                    except:
+                        pass
                 elif token.lexeme == 'true' or token.lexeme == 'false':
                     is_boolean = 1  
                 elif token.code == Code.STRING:
@@ -301,29 +326,41 @@ class Semantic:
             elif is_string == 1:
                 return 'string'
             
+            if custom_type != '':
+                return custom_type
             return 'invalid'
     
     def verify_assign_type(self, identifier, scope):
-        if scope == 'local' or scope == '':
-            scope = self.scope
+        if self.access_assign != '':
+            type_found = self.get_type_expression(identifier, self.expr_array)
             
-        if identifier.lexeme in self.symbols[scope]:
-            type_found = self.get_type_expression(identifier, self.expr_array, scope)
-            
-            if not type_found == 'invalid' and self.symbols[scope][identifier.lexeme]['type'] != type_found:
-                self.add_error(identifier, 'You cannot assign `' + type_found +'` to ' + '`' + self.symbols[scope][identifier.lexeme]['type'] + '`')
+            if self.access_assign == 'invalid' or type_found == 'invalid' or self.access_assign != type_found:
+                self.add_error(identifier, 'You cannot assign `' + type_found +'` to ' + '`' + self.access_assign + '`')
+        else:
+            if scope == 'local' or scope == '':
+                scope = self.scope
+                
+            if identifier.lexeme in self.symbols[scope]:
+                type_found = self.get_type_expression(identifier, self.expr_array)
+                
+                if not type_found == 'invalid' and self.symbols[scope][identifier.lexeme]['type'] != type_found:
+                    self.add_error(identifier, 'You cannot assign `' + type_found +'` to ' + '`' + self.symbols[scope][identifier.lexeme]['type'] + '`')
         
+        self.access_assign = ''
         self.expr = ''
         self.expr_array = []
         self.reading_expr = False
     
     def verify_return_type(self, token):
-        return_type = self.symbols[self.scope]['@return']
+        if '@return' in self.symbols[self.scope]:
+            return_type = self.symbols[self.scope]['@return']
 
-        type_found = self.get_type_expression(token, self.expr_array, self.scope)
-            
-        if not return_type == type_found:
-            self.add_error(token, 'You cannot return `' + type_found +'` into ' + '`' + return_type + '`')
+            type_found = self.get_type_expression(token, self.expr_array)
+                
+            if not return_type == type_found:
+                self.add_error(token, 'You cannot return `' + type_found +'` into ' + '`' + return_type + '`')
+        else:
+            self.add_error(token, 'A procedure does not contain any return.')
         
         self.expr = ''
         self.expr_array = []
@@ -339,7 +376,7 @@ class Semantic:
         self.reading_function = False
 
     def verify_is_int(self, token):
-        type_found = self.get_type_expression(token, self.expr_array, self.scope)
+        type_found = self.get_type_expression(token, self.expr_array)
             
         if not 'int' == type_found:
             self.add_error(token, 'You cannot use a non int as an array index.')
@@ -404,7 +441,7 @@ class Semantic:
                 open_amount -= 1
                 cur_param.append(token)
             elif open_amount == 0 and (token.lexeme == ',' or token.lexeme == ')'):
-                param_type = self.get_type_expression(identifier, cur_param, self.scope)
+                param_type = self.get_type_expression(identifier, cur_param)
                 func_str += param_type
                 func_str += token.lexeme
 
@@ -479,7 +516,7 @@ class Semantic:
         return [end_index_array, return_type, error]
 
     def verify_const_declaration_expr(self, type):
-        type_found = self.get_type_expression(type, self.expr_array, self.scope)
+        type_found = self.get_type_expression(type, self.expr_array)
             
         if type.lexeme != type_found:
             self.add_error(type, 'You cannot assign `' + type_found +'` into ' + '`' + type.lexeme + '`')
@@ -489,8 +526,9 @@ class Semantic:
         self.reading_expr = False
 
     def verify_struct_exists(self, token):
-        if not token.lexeme in self.symbols:
-            self.add_error(token, 'The type `' + token.lexeme + '` does not exists.')
+        if hasattr(ErrorToken, 'lexeme'):
+            if not token.lexeme in self.symbols:
+                self.add_error(token, 'The type `' + token.lexeme + '` does not exists.')
 
     def verify_id_on_access(self, last_token, cur_token, scope):
         if not (last_token.lexeme == 'global' or last_token.lexeme == 'local'):
@@ -509,6 +547,76 @@ class Semantic:
         if not identifier.lexeme in self.symbols[self.scope] and not identifier.lexeme in self.symbols['global']:
             self.add_error(identifier, 'Identifier not declared: `' + identifier.lexeme + '`') """
 
+    def init_access_reading(self, begining_token):
+        self.reading_access = True
+        self.access_token = begining_token
+        
+    def add_access_reading(self, lexeme):
+        if self.reading_access:
+            self.access += lexeme
+
+    def get_access_type(self, access, token):
+        access_array = access.split('.');
+        first_item = True
+        last_scope = access_array[0]
+        cur_str = access_array[0]
+        error = False
+
+        if last_scope != 'global' and last_scope != 'local':
+            if last_scope in self.symbols[self.scope]:
+                last_scope = self.symbols[self.scope][last_scope]['type']
+            elif last_scope in self.symbols['global']:
+                last_scope = self.symbols['global'][last_scope]['type']
+            else:
+                self.add_error(token, 'This variable does not exists: `' + cur_str + '`')
+                return 'invalid'
+
+        for index, item in enumerate(access_array):
+            if not first_item:
+                cur_str += '.'
+                cur_str += item
+                if last_scope == 'global':
+                    if item in self.symbols['global']:
+                        last_scope = self.symbols['global'][item]['type']
+                    else:
+                        self.add_error(token, 'This variable does not exists: `' + cur_str + '`')
+                        error = True
+                        break
+                elif last_scope == 'local':
+                    if item in self.symbols[self.scope]:
+                        last_scope = self.symbols[self.scope][item]['type']
+                    else:
+                        self.add_error(token, 'This variable does not exists: `' + cur_str + '`')
+                        error = True
+                        break
+                else:
+                    if last_scope in self.symbols:
+                        if item in self.symbols[last_scope]:
+                            last_scope = self.symbols[last_scope][item]['type']
+                        else:
+                            self.add_error(token, 'This variable does not exists: `' + cur_str + '`')
+                            error = True
+                            break
+                    else:
+                        if index + 1 < len(access_array):
+                            self.add_error(token, 'This variable does not exists: `' + cur_str + '`')
+                            error = True
+                            break
+            first_item = False
+
+        if error:
+            return 'invalid'
+
+        return last_scope
+
+    def end_access_reading(self, will_assign):
+        if self.reading_access and self.access != '':
+            type_found = self.get_access_type(self.access, self.access_token)
+            if will_assign:
+                self.access_assign = type_found
+        self.access = ''
+        self.reading_access = False
+        self.access_token = ''
 
     def log(self):
         print(self.symbols)

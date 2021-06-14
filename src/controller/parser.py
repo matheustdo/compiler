@@ -221,18 +221,20 @@ class Parser:
 
     def access(self, scope):
         last = self.last_token()
+        if self.verify({'.'}):
+            self.semantic.init_access_reading(last)
+        self.semantic.add_access_reading(last.lexeme)
 
         if self.eat_lexeme('.'):
+            self.semantic.add_access_reading('.')
+
             if self.semantic.reading_expr:
                 self.semantic.add_expr('.', self.last_token())
             if self.eat_code(Code.IDENTIFIER):
-                read_id = self.last_token()
                 if self.semantic.reading_expr:
                     self.semantic.add_expr(self.last_token().lexeme, self.last_token())
 
-                if last.lexeme == 'global' or last.lexeme == 'local':
-                    self.semantic.verify_id_not_declared(self.last_token(), scope)
-                self.semantic.verify_id_on_access(last, read_id, scope)
+                self.semantic.verify_id_not_declared(self.last_token(), scope)
                 self.arrays()
             else:
                 self.add_error('Id', follow_access()) 
@@ -241,22 +243,26 @@ class Parser:
             
     def accesses(self, scope):
         last = self.last_token()
+        if self.verify({'.'}):
+            self.semantic.init_access_reading(last)
+        self.semantic.add_access_reading(last.lexeme)
 
         if self.eat_lexeme('.'):
+            self.semantic.add_access_reading('.')
+
             if self.semantic.reading_expr:
                 self.semantic.add_expr('.', self.last_token())
             if self.eat_code(Code.IDENTIFIER):
-                read_id = self.last_token()
                 if self.semantic.reading_expr:
                     self.semantic.add_expr(self.last_token().lexeme, self.last_token())
 
-                if last.lexeme == 'global' or last.lexeme == 'local':
-                    self.semantic.verify_id_not_declared(self.last_token(), scope)
-                self.semantic.verify_id_on_access(last, read_id, scope)
+                self.semantic.verify_id_not_declared(self.last_token(), scope)
                 self.arrays()
                 self.accesses(scope)
             else:
                 self.add_error('Id', follow_accesses())
+        else:
+            self.semantic.end_access_reading(self.verify({'='}))
 
     def args_list(self):
         if self.eat_lexeme(','):
@@ -784,8 +790,13 @@ class Parser:
             p_type = self.token
             self.param_type()
 
+            las_token = self.token
+
+            if self.token.code == Code.IDENTIFIER:
+                las_token = self.token
+
             if self.eat_code(Code.IDENTIFIER):
-                self.semantic.proc_decl_add_param(p_type.lexeme + ' ' + self.last_token().lexeme)
+                self.semantic.proc_decl_add_param(p_type.lexeme + ' ' + las_token.lexeme)
                 self.param_arrays()
             else:
                 self.add_error('Id', follow_param())
@@ -891,7 +902,7 @@ class Parser:
         if not self.verify(first_program()):
             self.add_error('var` or `procedure', follow_program())
         self.var_block()
-
+        
         if not self.verify(first_program()):
             self.add_error('procedure', follow_program())
         self.decls()

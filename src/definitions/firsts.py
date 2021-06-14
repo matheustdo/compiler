@@ -4,7 +4,7 @@ This file contains the firsts of language grammar.
     
 # <Program> first = first(<Structs>) U first(<Const Block>) U first(<Var Block>) U first(<Start Block>)
 def first_program():
-    return first_structs() | first_const_block() | first_var_block() | first_start_block() 
+    return first_structs() | first_const_block() | first_var_block() | first_decls() | first_start_block() 
 
 # <Decls> first = first(<Decl>)
 def first_decls():
