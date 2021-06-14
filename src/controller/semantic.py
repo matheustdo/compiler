@@ -95,8 +95,9 @@ class Semantic:
                         self.add_error(identifier, 'Const attribution is not allowed: `local.' + identifier.lexeme + '`')
 
     def add_error(self, token, description):
-        error_token = ErrorToken(token.line_begin_index, description, Code.MF_SEMANTIC)
-        self.semantic_tokens.append(error_token)
+        if not token is None:
+            error_token = ErrorToken(token.line_begin_index, description, Code.MF_SEMANTIC)
+            self.semantic_tokens.append(error_token)
 
     def change_scope(self, new_scope):
         if not new_scope in self.symbols:
@@ -468,6 +469,20 @@ class Semantic:
             error = child_error
             
         return [end_index_array, return_type, error]
+
+    def verify_const_declaration_expr(self, type):
+        type_found = self.get_type_expression(type, self.expr_array, self.scope)
+            
+        if type.lexeme != type_found:
+            self.add_error(type, 'You cannot assign `' + type_found +'` into ' + '`' + type.lexeme + '`')
+        
+        self.expr = ''
+        self.expr_array = []
+        self.reading_expr = False
+
+    def verify_struct_exists(self, token):
+        if not token.lexeme in self.symbols:
+            self.add_error(token, 'The type `' + token.lexeme + '` does not exists.')
 
     def log(self):
         print(self.symbols)

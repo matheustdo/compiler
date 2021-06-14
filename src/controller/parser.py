@@ -541,6 +541,7 @@ class Parser:
         elif self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
+            self.semantic.verify_struct_exists(self.last_token());
             self.var_id(self.last_token())
         else:
             self.add_error('Var Declaration', follow_var_decl())
@@ -647,11 +648,13 @@ class Parser:
         else:
             self.add_error('}', follow_array_decl())
 
-    def decl_attribute(self):
+    def decl_attribute(self, type):
         if self.verify(first_array_decl()):
             self.array_decl()
         elif self.verify(first_expr()):
+            self.semantic.init_expr()
             self.expr()
+            self.semantic.verify_const_declaration_expr(type)
         else:
             self.add_error('{` or `Expression', follow_decl_atribute())
 
@@ -671,7 +674,7 @@ class Parser:
             else:
                 self.add_error('Id', follow_const_list())  
         elif self.eat_lexeme('='):
-            self.decl_attribute()
+            self.decl_attribute(type)
             
             if not self.eat_lexeme(';'):
                 self.add_error(';', follow_const_list())
@@ -690,13 +693,15 @@ class Parser:
     def const_decl(self):
         if self.verify(first_type()):
             self.type_()
-            self.const(self.last_token())
-            self.const_list(self.last_token()) 
+            type_token = self.last_token()
+            self.const(type_token)
+            self.const_list(type_token) 
         elif self.verify(first_typedef()):
             self.typedef()
         elif self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
+            self.semantic.verify_struct_exists(self.last_token());
             self.const_id(self.last_token())
         else:
             self.add_error('Const Declaration', follow_const_decl())
