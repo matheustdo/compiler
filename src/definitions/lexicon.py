@@ -27,6 +27,8 @@ LOGICAL_OPERATORS_BEGGINING = ['&', '|']
 
 LOGICAL_OPERATORS_EXTENDED = ['&&', '||', '!']
 
+LOGICAL_AND_RELATIONAL = ['<', '>', '=','<=', '>=', '==', '!=', '&', '|', '&&', '||', '!']
+
 COMMENT_EXTENDED = ['//', '/*', '*/']
 
 COMMOM_ARITHMETIC_COMMENT = '/'

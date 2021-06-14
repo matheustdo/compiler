@@ -6,6 +6,7 @@ from src.model.token import Token
 from src.model.error_token import ErrorToken
 from src.model.code import Code
 from src.definitions.lexicon import LETTER
+from src.definitions.lexicon import LOGICAL_AND_RELATIONAL
 import re
 
 class Semantic:
@@ -162,12 +163,16 @@ class Semantic:
 
     def get_type_expression(self, identifier, expr_array, scope):
         expr = ''
+        
         for x in expr_array:
             expr += x.lexeme
+
         x = re.findall(LETTER, expr)
-        
-        if len(x) == 0:
-            if isinstance(eval(expr), int):
+
+        if len(x) == 0:        
+            if any(l_and_r in expr for l_and_r in LOGICAL_AND_RELATIONAL) > 0:
+                return 'boolean'
+            elif isinstance(eval(expr), int):
                 return 'int'
             else:
                 return 'real'
@@ -188,6 +193,9 @@ class Semantic:
             last_scope = ''
             index = 0
             array_len = len(expr_array)
+
+            if any(l_and_r in expr for l_and_r in LOGICAL_AND_RELATIONAL) > 0:
+                is_boolean = 1
             
             while index < array_len:
                 token = expr_array[index]
@@ -282,14 +290,14 @@ class Semantic:
             for x in expr_array:
                 expr += x.lexeme
 
-            if is_int + is_real + is_boolean + is_string > 1:
+            if is_int + is_real + is_string > 1:
                 self.add_error(identifier, 'There are more than one types in a single expression `' + expr + '`. Conversions are not allowed here.')
+            elif is_boolean == 1:
+                return 'boolean'
             elif is_int == 1:
                 return 'int'
             elif is_real == 1:
                 return 'real'
-            elif is_boolean == 1:
-                return 'boolean'
             elif is_string == 1:
                 return 'string'
             
@@ -483,6 +491,24 @@ class Semantic:
     def verify_struct_exists(self, token):
         if not token.lexeme in self.symbols:
             self.add_error(token, 'The type `' + token.lexeme + '` does not exists.')
+
+    def verify_id_on_access(self, last_token, cur_token, scope):
+        if not (last_token.lexeme == 'global' or last_token.lexeme == 'local'):
+            if scope == 'local' or scope == '':
+                scope = self.scope
+
+            if last_token.lexeme in self.symbols[scope]:
+                type_found = self.symbols[scope][last_token.lexeme]['type']
+
+                if type_found == 'int' or type_found == 'real' or type_found == 'boolean' or type_found == 'string':
+                    self.add_error(cur_token, 'You cannot access variables of the type: `' + type_found + '`')
+                elif not cur_token.lexeme in self.symbols[type_found]:
+                    self.add_error(cur_token, '`' + cur_token.lexeme + '` does not exists on: `' + last_token.lexeme + '`')
+
+        """ if not last_token in self.symbols:
+        if not identifier.lexeme in self.symbols[self.scope] and not identifier.lexeme in self.symbols['global']:
+            self.add_error(identifier, 'Identifier not declared: `' + identifier.lexeme + '`') """
+
 
     def log(self):
         print(self.symbols)

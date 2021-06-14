@@ -220,13 +220,19 @@ class Parser:
             self.add_error('=`, `++` or `--', follow_assign())
 
     def access(self, scope):
+        last = self.last_token()
+
         if self.eat_lexeme('.'):
             if self.semantic.reading_expr:
                 self.semantic.add_expr('.', self.last_token())
             if self.eat_code(Code.IDENTIFIER):
+                read_id = self.last_token()
                 if self.semantic.reading_expr:
                     self.semantic.add_expr(self.last_token().lexeme, self.last_token())
-                self.semantic.verify_id_not_declared(self.last_token(), scope)
+
+                if last.lexeme == 'global' or last.lexeme == 'local':
+                    self.semantic.verify_id_not_declared(self.last_token(), scope)
+                self.semantic.verify_id_on_access(last, read_id, scope)
                 self.arrays()
             else:
                 self.add_error('Id', follow_access()) 
@@ -234,13 +240,19 @@ class Parser:
             self.add_error('.', follow_access())
             
     def accesses(self, scope):
+        last = self.last_token()
+
         if self.eat_lexeme('.'):
             if self.semantic.reading_expr:
                 self.semantic.add_expr('.', self.last_token())
             if self.eat_code(Code.IDENTIFIER):
+                read_id = self.last_token()
                 if self.semantic.reading_expr:
                     self.semantic.add_expr(self.last_token().lexeme, self.last_token())
-                self.semantic.verify_id_not_declared(self.last_token(), scope)
+
+                if last.lexeme == 'global' or last.lexeme == 'local':
+                    self.semantic.verify_id_not_declared(self.last_token(), scope)
+                self.semantic.verify_id_on_access(last, read_id, scope)
                 self.arrays()
                 self.accesses(scope)
             else:

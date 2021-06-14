@@ -1,9 +1,19 @@
 // Arquivo de Entrada
 
+struct Focus {
+	var
+		{
+			int cim;
+			int cim;
+		}
+}
+
 struct Teste {
 	var
 		{
 			int b;
+			int ba;
+			Focus fff;
 		}
 }
 
@@ -25,6 +35,7 @@ var
 	real situacao;
 	real ux;
 	Teste qo;
+	Teste agora;
 }
 
 procedure oxe1()
@@ -115,13 +126,18 @@ procedure start()
 		real coisa;
 		int id;
 		int ue;
+		int agora;
+		boolean neto;
 	}
 	ux = outra(184 + 948+ local.ux, 5 *3 + outra(outra(2,2,2),5,2),3);
 	print();
+	global.agora.ba = 5;
+	global.agora.fff.cima = 5;
 	global.inteiro = 1;
 	local.ux = local.id +  oxe1(funcaoo(global.situacao, ux, outra(ux, ux, ux)), ue, ue, ue) + 1/3 + 9 * 3 * ( 5 * (35*4) + 6);
 	ux = 1;
 	ux = local.ux;
 	global.ux = 5.5 + 3.3;
 	ux = oxe1(ux,ux,ux,ux);
+	ux = ux + 2;
 }
