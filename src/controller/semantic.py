@@ -34,7 +34,10 @@ class Semantic:
     def add(self, scope, key, item):
         self.symbols[scope][key] = item
 
-    def add_id_declaration(self, identifier, attributes): 
+    def add_id_declaration(self, identifier, type_token, conf): 
+        if not hasattr(identifier, 'lexeme') or not hasattr(type_token, 'lexeme'):
+            return
+
         proc_declared = False
 
         for key in self.symbols:
@@ -49,9 +52,20 @@ class Semantic:
         if proc_declared or identifier.lexeme in self.symbols[self.scope]:
             self.add_error(identifier, 'This identifier has already been declared: `' + identifier.lexeme + '`')
         else:
-            self.add(self.scope, identifier.lexeme, attributes)
+            type_lexeme = type_token.lexeme
+
+            if '@types' in self.symbols[self.scope]:
+                if type_token.lexeme in self.symbols[self.scope]['@types']:
+                    type_lexeme = self.symbols[self.scope]['@types'][type_token.lexeme]['type']
+            elif '@types' in self.symbols['global']:
+                if type_token.lexeme in self.symbols['global']['@types']:
+                    type_lexeme = self.symbols[self.scope]['@types'][type_token.lexeme]['type']
+            self.add(self.scope, identifier.lexeme, { 'type': type_lexeme, 'conf': conf})
 
     def verify_id_not_declared(self, identifier, scope):
+        if not hasattr(identifier, 'lexeme'):
+            return
+
         if not self.reading_access:
             is_a_function = False
 
@@ -77,6 +91,9 @@ class Semantic:
                         self.add_error(identifier, 'Identifier not declared: `' + identifier.lexeme + '`')
 
     def verify_attribution(self, identifier, scope):
+        if not hasattr(identifier, 'lexeme'):
+            return
+
         is_a_function = False
 
         for key in self.symbols:
@@ -167,6 +184,9 @@ class Semantic:
         self.proc_key = identifier.lexeme
 
     def get_type_expression(self, identifier, expr_array):
+        if not hasattr(identifier, 'lexeme'):
+            return
+
         expr = ''
         custom_type = ''
         
@@ -331,6 +351,9 @@ class Semantic:
             return 'invalid'
     
     def verify_assign_type(self, identifier, scope):
+        if not hasattr(identifier, 'lexeme'):
+            return
+
         if self.access_assign != '':
             type_found = self.get_type_expression(identifier, self.expr_array)
             
@@ -345,6 +368,11 @@ class Semantic:
                 
                 if not type_found == 'invalid' and self.symbols[scope][identifier.lexeme]['type'] != type_found:
                     self.add_error(identifier, 'You cannot assign `' + type_found +'` to ' + '`' + self.symbols[scope][identifier.lexeme]['type'] + '`')
+            elif identifier.lexeme in self.symbols['global']:
+                type_found = self.get_type_expression(identifier, self.expr_array)
+
+                if not type_found == 'invalid' and self.symbols['global'][identifier.lexeme]['type'] != type_found:
+                    self.add_error(identifier, 'You cannot assign `' + type_found +'` to ' + '`' + self.symbols['global'][identifier.lexeme]['type'] + '`')
         
         self.access_assign = ''
         self.expr = ''
@@ -352,6 +380,9 @@ class Semantic:
         self.reading_expr = False
     
     def verify_return_type(self, token):
+        if not hasattr(token, 'lexeme'):
+            return
+
         if '@return' in self.symbols[self.scope]:
             return_type = self.symbols[self.scope]['@return']
 
@@ -369,6 +400,9 @@ class Semantic:
         self.reading_function = False
 
     def verify_function_returned(self, token):
+        if not hasattr(token, 'lexeme'):
+            return
+
         if self.reading_function:
             if not self.return_found:
                 self.add_error(token, 'The function should have a return value.')
@@ -376,6 +410,9 @@ class Semantic:
         self.reading_function = False
 
     def verify_is_int(self, token):
+        if not hasattr(token, 'lexeme'):
+            return
+
         type_found = self.get_type_expression(token, self.expr_array)
             
         if not 'int' == type_found:
@@ -516,6 +553,9 @@ class Semantic:
         return [end_index_array, return_type, error]
 
     def verify_const_declaration_expr(self, type):
+        if not hasattr(type, 'lexeme'):
+            return
+
         type_found = self.get_type_expression(type, self.expr_array)
             
         if type.lexeme != type_found:
@@ -526,9 +566,11 @@ class Semantic:
         self.reading_expr = False
 
     def verify_struct_exists(self, token):
-        if hasattr(ErrorToken, 'lexeme'):
-            if not token.lexeme in self.symbols:
-                self.add_error(token, 'The type `' + token.lexeme + '` does not exists.')
+        if not hasattr(token, 'lexeme'):
+            return
+
+        if not token.lexeme in self.symbols:
+            self.add_error(token, 'The structs: `' + token.lexeme + '` does not exists.')
 
     def verify_id_on_access(self, last_token, cur_token, scope):
         if not (last_token.lexeme == 'global' or last_token.lexeme == 'local'):
@@ -556,6 +598,9 @@ class Semantic:
             self.access += lexeme
 
     def get_access_type(self, access, token):
+        if not hasattr(token, 'lexeme'):
+            return
+
         access_array = access.split('.');
         first_item = True
         last_scope = access_array[0]
@@ -617,6 +662,46 @@ class Semantic:
         self.access = ''
         self.reading_access = False
         self.access_token = ''
+            
+    def verify_type_not_exists(self, type_token):
+        if not hasattr(type_token, 'lexeme'):
+            return
+
+        if (type_token.lexeme == 'int' or type_token.lexeme == 'struct' 
+            or type_token.lexeme == 'string' or type_token.lexeme == 'boolean'
+            or type_token.lexeme == 'real'):
+            return
+
+        if '@types' in self.symbols[self.scope]:
+            if not type_token.lexeme in self.symbols[self.scope]['@types']:
+                self.add_error(type_token, 'This type has not defined: `' + type_token.lexeme + '`')   
+        elif '@types' in self.symbols['global']:
+            if not type_token.lexeme in self.symbols['global']['@types']:
+                self.add_error(type_token, 'This type has not defined: `' + type_token.lexeme + '`')
+        else:
+            self.add_error(type_token, 'This type has not defined: `' + type_token.lexeme + '`')
+
+    def add_type(self, new_type, type_token): 
+        if not hasattr(new_type, 'lexeme') or not hasattr(type_token, 'lexeme'):
+            return
+
+        if '@types' in self.symbols[self.scope]:
+            if new_type.lexeme in self.symbols[self.scope]['@types']:
+                self.add_error(new_type, 'This type is already defined: `' + new_type.lexeme + '`')
+            else:
+                self.symbols[self.scope]['@types'][new_type.lexeme] = { 'type': type_token.lexeme }
+        else:
+            self.symbols[self.scope]['@types'] = {}
+            self.symbols[self.scope]['@types'][new_type.lexeme] = { 'type': type_token.lexeme }
+
+    def extends(self, child, parent):
+        if not hasattr(child, 'lexeme') or not hasattr(parent, 'lexeme'):
+            return
+
+        if parent.lexeme in self.symbols:
+            self.symbols[child.lexeme] = self.symbols[parent.lexeme].copy()
+        else:
+            self.add_error(parent, 'You cannot extend from an inexistent struct: `' + parent.lexeme + '`')
 
     def log(self):
         print(self.symbols)

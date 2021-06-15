@@ -506,9 +506,15 @@ class Parser:
     def typedef(self):
         if self.eat_lexeme('typedef'):
             if self.verify(first_type()):
+                struct_possibility = self.token
                 self.type_()
+                type_selected = self.last_token()
+                
+                if struct_possibility.lexeme == 'struct':
+                    self.semantic.verify_struct_exists(type_selected)
 
                 if self.eat_code(Code.IDENTIFIER):
+                    self.semantic.add_type(self.last_token(), type_selected)
                     if not self.eat_lexeme(';'):
                         self.add_error(';', follow_typedef())
                 else:
@@ -520,7 +526,8 @@ class Parser:
 
     def var(self, type):
         if self.eat_code(Code.IDENTIFIER):
-            self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme, 'conf': 'var' })
+            if hasattr(type, 'lexeme'):
+                self.semantic.add_id_declaration(self.last_token(), type, 'var')
             self.arrays()
         else:
             self.add_error('Id', follow_var())
@@ -528,7 +535,8 @@ class Parser:
     def var_list(self, type):
         if self.eat_lexeme(','):
             if self.eat_code(Code.IDENTIFIER):
-                self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme, 'conf': 'var' })
+                if hasattr(type, 'lexeme'):
+                    self.semantic.add_id_declaration(self.last_token(), type, 'var')
                 self.arrays()
                 self.var_list(type)
             else:
@@ -548,9 +556,15 @@ class Parser:
 
     def var_decl(self):
         if self.verify(first_type()):
+            struct_possibility = self.token
             self.type_()
-            self.var(self.last_token())
-            self.var_list(self.last_token()) 
+            type_selected = self.last_token()
+            
+            if struct_possibility.lexeme == type_selected.lexeme:
+                self.semantic.verify_type_not_exists(type_selected)
+
+            self.var(type_selected)
+            self.var_list(type_selected) 
 
             if not self.eat_lexeme(';'):
                 self.add_error(';', follow_var_decl()) 
@@ -559,7 +573,7 @@ class Parser:
         elif self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
-            self.semantic.verify_struct_exists(self.last_token());
+            self.semantic.verify_type_not_exists(self.last_token());
             self.var_id(self.last_token())
         else:
             self.add_error('Var Declaration', follow_var_decl())
@@ -678,7 +692,8 @@ class Parser:
 
     def const(self, type):
         if self.eat_code(Code.IDENTIFIER):
-            self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme, 'conf': 'const' })
+            if hasattr(type, 'lexeme'):
+                self.semantic.add_id_declaration(self.last_token(), type, 'const')
             self.arrays()
         else:
             self.add_error('Id', follow_const())
@@ -686,7 +701,8 @@ class Parser:
     def const_list(self, type):
         if self.eat_lexeme(','):
             if self.eat_code(Code.IDENTIFIER):
-                self.semantic.add_id_declaration(self.last_token(), { 'type': type.lexeme, 'conf': 'const' })
+                if hasattr(type, 'lexeme'):
+                    self.semantic.add_id_declaration(self.last_token(), type, 'const')
                 self.arrays()
                 self.const_list(type)
             else:
@@ -710,16 +726,21 @@ class Parser:
 
     def const_decl(self):
         if self.verify(first_type()):
+            struct_possibility = self.token
             self.type_()
-            type_token = self.last_token()
-            self.const(type_token)
-            self.const_list(type_token) 
+            type_selected = self.last_token()
+            
+            if struct_possibility.lexeme == type_selected.lexeme:
+                self.semantic.verify_type_not_exists(type_selected)
+
+            self.const(type_selected)
+            self.const_list(type_selected) 
         elif self.verify(first_typedef()):
             self.typedef()
         elif self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
-            self.semantic.verify_struct_exists(self.last_token());
+            self.semantic.verify_type_not_exists(self.last_token());
             self.const_id(self.last_token())
         else:
             self.add_error('Const Declaration', follow_const_decl())
@@ -738,9 +759,13 @@ class Parser:
                 self.add_error('}', follow_const_block()) 
 
     def extends(self):
+        struct_token = self.last_token()
+        
         if self.eat_lexeme('extends'):
             if self.eat_lexeme('struct'):
-                if not self.eat_code(Code.IDENTIFIER):
+                if self.eat_code(Code.IDENTIFIER):
+                    self.semantic.extends(struct_token, self.last_token())
+                else:
                     self.add_error('Id', follow_extends()) 
             else:
                 self.add_error('struct', follow_extends())
@@ -811,6 +836,8 @@ class Parser:
     def param_type(self):
         if self.verify(first_type()):
             self.type_()
+            type_selected = self.last_token()
+            self.semantic.verify_type_not_exists(type_selected)
         elif not self.eat_code(Code.IDENTIFIER):
             self.add_error('type` or `Id', follow_param_type())
 

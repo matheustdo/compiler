@@ -1,0 +1,41 @@
+/*
+ * Duplicidade de funções/procedimentos (sobrecarga)
+ */
+
+procedure teste() {}
+
+procedure p(int a) {}
+
+procedure p(int a[]) {}
+
+procedure p(string a, real b) {}
+
+procedure p(string nome[], real b) {}
+
+procedure p(real a, int b) {}
+
+procedure teste() {} //erro
+
+procedure testes() {}
+
+procedure p(int x, real y) {}
+
+function int f() { return 1; }
+
+function real f() { return 1.1; } //erro
+
+function boolean f(real a) { return false; }
+
+function int f(real a) { return 1; } //erro
+
+function string f(string a) { return ""; }
+
+function string f(string a[]) { return "hello world"; }
+
+function real f() { return 1.2; } //erro
+
+function string f(real a) { return "test"; } //erro
+
+procedure start() {}
+
+procedure start() {} //erro eof

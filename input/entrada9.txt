@@ -2,7 +2,14 @@
  * Arquivo sem erros
  */
 
-struct Focus {
+struct Carro {
+	var
+		{
+			string cor;
+		}
+}
+
+struct Focus extends struct Carro {
 	var
 		{
 			int cim;
@@ -15,7 +22,7 @@ struct Teste {
 		{
 			int b;
 			int ba;
-			Focus fff;
+			struct Focus fff;
 		}
 }
 
@@ -36,8 +43,12 @@ var
 	real id;
 	real situacao;
 	real ux;
-	Teste qo;
-	Teste agora;
+	struct Teste qo;
+	struct Teste agora;
+	typedef int tipoInteiro;
+	typedef struct Teste tipoTeste;
+	tipoInteiro oitenta;
+	int testedoEscopo;
 }
 
 procedure oxe1()
@@ -135,9 +146,13 @@ procedure start()
 		int ue;
 		int agora;
 		boolean neto;
-		Teste algo;
-		Teste agoranao;
+		struct Teste algo;
+		struct Teste agoranao;
+		struct Teste testeDoTipo;
+		typedef struct Teste sim;
 	}
+	testedoEscopo = 5;
+	oitenta = 5;
 	ux = outra(184 + 948+ local.ux, 5 *3 + outra(outra(2,2,2),5,2),3);
 	print();
 	global.agora.ba = 5;
