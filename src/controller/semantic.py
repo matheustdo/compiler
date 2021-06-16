@@ -30,6 +30,10 @@ class Semantic:
         self.reading_access = False
         self.access_token = ''
         self.access_assign = ''
+        self.proc_call_token = None
+        self.proc_call_str = ''
+        self.reading_proc_call = False
+        self.proc_call_array = []
 
     def add(self, scope, key, item):
         self.symbols[scope][key] = item
@@ -702,6 +706,97 @@ class Semantic:
             self.symbols[child.lexeme] = self.symbols[parent.lexeme].copy()
         else:
             self.add_error(parent, 'You cannot extend from an inexistent struct: `' + parent.lexeme + '`')
+
+    def proc_call_add_param(self, token):
+        if not hasattr(token, 'lexeme'):
+            return
+
+        if self.reading_proc_call:
+            self.proc_call_str += token.lexeme
+            self.proc_call_array.append(token)
+
+    def init_proc_call(self, token):
+        self.proc_call_token = token
+        self.proc_call_str = token.lexeme
+        self.reading_proc_call = True
+        self.proc_call_array = [token]
+
+    def verify_proc_not_declared(self):
+        if self.reading_proc_call:
+            cur_param = []
+            params = []
+            open_counter = 0
+            index = 2
+
+            while index < len(self.proc_call_array) :
+                token = self.proc_call_array[index]
+                
+                if token.lexeme == '(':
+                    cur_param.append(token)
+                    open_counter += 1
+                elif token.lexeme == ')':
+                    if open_counter == 0 :
+                        params.append(cur_param)
+                        cur_param = []
+                    else:
+                        cur_param.append(token)
+                        open_counter -= 1
+                elif token.lexeme == ',' and open_counter == 0:
+                    params.append(cur_param)
+                    cur_param = []
+                else:
+                    cur_param.append(token)
+                index += 1
+
+            types = []
+            no_params = True
+
+            for param in params:
+                if param:
+                    no_params = False
+                    types.append(self.get_type_expression(self.proc_call_token, param))
+            
+            proc = self.proc_call_token.lexeme + '('
+
+            for index, p in enumerate(types):
+                proc += p
+                if index + 1< len(types):
+                    proc += ','
+
+            proc += ')'
+        
+            ## verify existance on symbols table:
+            if no_params:
+                if not proc in self.symbols:
+                    self.add_error(self.proc_call_token, 'This func/procedure does not exist: `' + proc + '`')
+            else:
+                keys = []
+                found = False
+
+                for key in self.symbols:
+                    if self.proc_call_token.lexeme + '(' in key:
+                        keys.append(key)
+
+                for key in keys:
+                    name = key[(key.index('(') + 1):key.index(')')]
+                    params_name = name.split(',')
+                    keys_params = ''
+
+                    for index, p_n in enumerate(params_name):
+                        keys_params += p_n.split()[0]
+                        if index  +1 < len(params_name):
+                            keys_params += ','
+
+                    if proc == self.proc_call_token.lexeme + '(' + keys_params + ')':
+                        found = True
+
+                if not found:
+                    self.add_error(self.proc_call_token, 'This func/procedure does not exist: `' + proc + '`')
+
+        self.proc_call_token = None
+        self.proc_call_str = ''
+        self.reading_proc_call = False
+        self.proc_call_array = []
 
     def log(self):
         print(self.symbols)

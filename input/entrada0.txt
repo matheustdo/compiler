@@ -3,28 +3,18 @@
  */
 
 const {
-	real a_ = 6;
-	boolean c = 6;
+	real a_ = 6; // Erro de tipo. Tentou colocar inteiro no real
+	boolean c = 6; // Erro de tipo. Tentou colocar inteiro no boolean
 	int d = 6;
-
-	real pi, euller = 6;
-
-	pi = 3.14;
-	euller = 2.718;
+	real pi, euller = 6; // Erro de tipo. Tentou colocar inteiro no real
 }
 
 var {
-	int a_;    //erro
+	int a_;    // Erro. Identificador já declarado
 	string b;
-	real d; //erro
-
+	real d; // Erro. Identificador já declarado
 	int a;
 	string c_;
-
-	a = 1;
-	f = 2.1;           //erro
-	c_ = "hello world";
-	g = true;          //erro
 }
 
 
@@ -32,57 +22,54 @@ procedure p(int x, real y) {
 	var {
 		int valor1, valor2, valor3;
 		real b;
-		string valor1, valor2; //erro nas 2 variáveis
+		string valor1, valor2; // Erro. Identificadores já declarados.
 	}
 }
 
 procedure p0() {
 	print(a, b);
-	return true; //erro
+
+	return true; // Erro. Um 'procedure' não retorna nenhum tipo.
 }
 
 function int f(int a) {
-	var {
-		a = 10;
-		b = false; //erro
+	a = 42;
 
-		real c;
-	}
-
-	c = 3.14;
-	d = "test"; //erro
+	c = 3.14; // Erro. Não é possível associar um real a um boolean.
+	d = "test"; // Erro. Não é possível associar uma string a um int.
 
 	return a;
 }
 
 function int f() {
 	var {
-		real pi, d, e, f;
+		real pi, d, e, f; // Erro. Não é possível declarar uma variável com o nome de uma função/procedure. O erro acontece no 'f'.
 	}
 
 	pi = 3.14;
 	local.d = 2.17;
 
-	global.euller = 2.718; //erro
-	f = 0.14;
+	global.euller = 2.718; // Erro. Não é possível associar valores a constantes.
+	f = 0.14; // Erro. Não é possível atribuir valores a funções
 
 	return 0;
 }
 
 procedure start() {
-	b = fb(); //erro
-	i = fi(); //erro
-	r = fr(); //erro
-	s = fs(); //erro
-	p0();
-	p0(a);    //erro
+	b = fb(); // Erro. Função não declarada.
+	i = fi(); // Erro. 'i' não declarado'.
+	r = fr(); // Erro. 'r' não declarado.
+	s = fs(); // Erro. 's' não declarado.
+	p(0, 0.2);
+	p(0.2, 0.2); // Erro. Não existe p() recebendo dois reais nos parâmetros.
+	p0();    // Erro.
 	
-	b = !b || (i > 1) && (r > 1.3) || i == "test"; //erro em i
+	b = !b || (i > 1) && (r > 1.3) || i == "test"; // Erro. 'i' e 'r' não declarados. Existem tipos diferentes na expressão, como o 'i' e 'r' são inválidos, e conversões não são permitidas.
 
-	s = !b || (i > 1) && (r > 1.3) || s == "test"; //erro
+	s = !b || (i > 1) && (r > 1.3) || s == "test"; // Erro. 's' não declarado.
 
-	func(); //erro em func
-    func2(a,b); //erro em func2
+	func(); // Erro. 'func' não declarado.
+    func2(a,b); // Erro. 'func2' não declarado.
 
 }
 
