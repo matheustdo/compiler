@@ -537,7 +537,7 @@ class Parser:
         if self.eat_lexeme('['):
             self.semantic.add_access_reading(self.last_token())
             self.semantic.add_array_count()
-            if not identifier == 0:
+            if identifier != 0:
                 self.semantic.increment_array(identifier)
 
             if self.verify(first_expr()):

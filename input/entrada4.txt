@@ -6,21 +6,21 @@ var {
 	int a;
 	
 	a = 1;
-	conta = 2050;           //erro em conta
-	c = "hello world";    //erro em c
-	idade = 20;          //erro em idade
+	conta = 2050;           // Erro em 'conta'. Não declarado.
+	c = "hello world";    // Erro em 'c'. Não declarado.
+	idade = 20;          // Erro em 'idade'. Não declarado.
 }
 
 function int f(int a) {
 	var {
 		a = 10;
-		b = 20; //erro
+		b = 20; // Erro em 'b'. Não declarado.
 
 		real c;
 	}
 
 	c = 3.14;
-	d = "test"; //erro em d
+	d = "test"; // Erro em 'd'. Não declarado.
 
 	return a;
 }
@@ -30,11 +30,12 @@ procedure start() {
 		boolean a, c; 
 		
 		a = true;
-		idade_atual = false; //erro em idade_atual
+		idade_atual = false; // Erro em 'idade_atual'. Não declarado
 		c = true;
 	}
 
 	f(10);
-	func();   //erro
-	func_2(7); //erro
+	f(); // Erro. Função 'f()' sem argumentos não declarada, apenas a 'f(int)' foi declarada. 
+	func();   // Função não declarada.
+	func_2(7); // Erro. Função não declarada
 }

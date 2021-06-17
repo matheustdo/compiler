@@ -118,11 +118,13 @@ class Semantic:
             if scope == 'global':
                 if identifier.lexeme in self.symbols[scope]:
                     if (self.symbols[scope][identifier.lexeme]['conf'] == 'const'):
-                        self.add_error(identifier, 'Const attribution is not allowed: `global.' + identifier.lexeme + '`')
+                        if self.scope != 'global':
+                            self.add_error(identifier, 'Const attribution is not allowed: `global.' + identifier.lexeme + '`')
             else:
                 if identifier.lexeme in self.symbols[self.scope]:
                     if (self.symbols[self.scope][identifier.lexeme]['conf'] == 'const'):
-                        self.add_error(identifier, 'Const attribution is not allowed: `local.' + identifier.lexeme + '`')
+                        if self.scope != 'global':
+                            self.add_error(identifier, 'Const attribution is not allowed: `local.' + identifier.lexeme + '`')
 
     def add_error(self, token, description):
         if not token is None:
@@ -825,11 +827,12 @@ class Semantic:
         if not hasattr(identifier, 'lexeme'):
             return
 
-        if identifier.lexeme in self.symbols[self.scope]:
-            if 'array' in self.symbols[self.scope][identifier.lexeme]:
-                self.symbols[self.scope][identifier.lexeme]['array'] += 1
-            else:
-                self.symbols[self.scope][identifier.lexeme]['array'] = 1
+        if self.var_decl:
+            if identifier.lexeme in self.symbols[self.scope]:
+                if 'array' in self.symbols[self.scope][identifier.lexeme]:
+                    self.symbols[self.scope][identifier.lexeme]['array'] += 1
+                else:
+                    self.symbols[self.scope][identifier.lexeme]['array'] = 1
 
     def add_error_empty_array(self, token):
         if not self.var_decl:
@@ -870,10 +873,12 @@ class Semantic:
             else:
                 if identifier.lexeme in self.symbols[self.scope]:
                     array = self.symbols[self.scope][identifier.lexeme]['array']
+                    
                     if self.array_count > array:
                         self.add_error(identifier, 'You cannot access an inexistent dimension at: `' + identifier.lexeme + '`')
                 elif identifier.lexeme in self.symbols['global']:
                     array = self.symbols['global'][identifier.lexeme]['array']
+                    
                     if self.array_count > array:
                         self.add_error(identifier, 'You cannot access an inexistent dimension at: `' + identifier.lexeme + '`')
                 else:

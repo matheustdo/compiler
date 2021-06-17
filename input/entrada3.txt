@@ -2,13 +2,19 @@
  * Duplicidade de funções/procedimentos (sobrecarga)
  */
 
+const {
+    int constante = 5;
+}
+
+procedure constante() {} // Erro. Uma função/procedimento não pode possuir o mesmo nome que uma variável.
+
 procedure teste() {}
 
 procedure p(int a) {}
 
 procedure p(string a, real b) {}
 
-procedure p(real a, int b) {} // Correto. Sobrecarga OK
+procedure p(real a, int b) {}
 
 procedure teste() {} // Erro. Já existe 
 

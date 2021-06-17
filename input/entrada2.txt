@@ -23,6 +23,7 @@ procedure start() {
 	var {
 		boolean a; 
 		int b;
-		real a; // Erro no 'a'
+		real a; // Erro no 'a' 
+		int f; // Erro. Uma variável não pode possuir o mesmo nome que uma função/procedimento.
 	}
 }

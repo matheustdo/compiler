@@ -172,7 +172,7 @@ procedure start()
 	ux = oxe1(algo.ba, global.agora.fff, 3, 5*3);
 	ux = ux + 2;
 	global.algo[5] = 5;
-	arrayzinho[5][2] = 5;
+	arrayzinho[5] = 5;
 	ux = 5;
 	global.b = 5;
 }

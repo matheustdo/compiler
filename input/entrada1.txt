@@ -29,6 +29,6 @@ procedure start() {
 	var {
 		boolean b; 
 		int c;   
-		real d;   
+		real d;  
 	}
 }
