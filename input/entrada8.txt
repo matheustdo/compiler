@@ -17,6 +17,15 @@ struct T extends struct S {
 	}
 }
 
+struct T { } // Erro. Já existe uma estrutura nomeada como 'T'.
+
+struct Y extends struct X { // Erro. Não existe uma estrutura 'X' para extender.
+	var {
+		int vi;
+		real vr[10];
+	}
+}
+
 var {
 	int vi;
 	real vr[10];
