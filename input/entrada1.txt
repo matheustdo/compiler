@@ -3,31 +3,32 @@
  */
 
 const {
-	real a_ = 6;
-	boolean c = 6;
+	real a_ = 6.0;
+	boolean c = true;
+	int c = 1; // Erro no c. Identificador já declarado.
 	int d = 6;
 }
 
 var {
-	int a_;    //erro no a_
+	int a_;    // Erro no a_. Identificador já declarado.
 	string b;
-	real d; //erro no d
+	real d; // Erro no d. Identificador já declarado.
 }
 
 function real soma() {
 	var {
-		boolean a_; //normal
-		int c;	   //normal
-		real d;    //normal
+		boolean a_; 
+		int c;	  
+		real d;   
 	}
 
-	// return c;     //erro sintático se descomentar o return
+	return c;     // Não é possível retornar inteiro em um real
 }    //erro no retorno
 
 procedure start() {
 	var {
-		boolean b; //normal
-		int c;     //normal
-		real d;    //normal
+		boolean b; 
+		int c;   
+		real d;   
 	}
 }

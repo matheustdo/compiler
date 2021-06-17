@@ -155,14 +155,14 @@ class Parser:
         else:
             self.add_error('read` or `print', follow_stm_cmd())
 
-    def stm_id(self):
+    def stm_id(self, identifier=0):
         read_token = self.last_token()
 
         if self.verify(first_assign()):
             self.assign(read_token, '')
         elif self.verify(first_array()):
             self.array()
-            self.arrays()
+            self.arrays(identifier)
             self.accesses('')
             self.assign(read_token, '')
         elif self.verify(first_access()):
@@ -202,10 +202,12 @@ class Parser:
 
             if self.token.lexeme == '(':
                 self.semantic.init_proc_call(self.last_token())
+            elif self.token.lexeme == '[':
+                self.semantic.init_array_count()
             else:
                 self.semantic.verify_id_not_declared(self.last_token(), '')
 
-            self.stm_id()
+            self.stm_id(self.last_token())
             if cur_token.lexeme == '(':
                 self.semantic.verify_proc_not_declared()
                 
@@ -234,20 +236,25 @@ class Parser:
         last = self.last_token()
         if self.verify({'.'}):
             self.semantic.init_access_reading(last)
-        self.semantic.add_access_reading(last.lexeme)
+        self.semantic.add_access_reading(last)
 
         if self.eat_lexeme('.'):
-            self.semantic.add_access_reading('.')
+            self.semantic.add_access_reading(self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             if self.semantic.reading_expr:
                 self.semantic.add_expr('.', self.last_token())
             if self.eat_code(Code.IDENTIFIER):
+                if self.token.lexeme == '[':
+                    self.semantic.add_access_reading(self.last_token())
                 self.semantic.proc_call_add_param(self.last_token())
                 if self.semantic.reading_expr:
                     self.semantic.add_expr(self.last_token().lexeme, self.last_token())
 
-                self.semantic.verify_id_not_declared(self.last_token(), scope)
-                self.arrays()
+                if self.token.lexeme != '[':
+                    self.semantic.verify_id_not_declared(self.last_token(), scope)
+                else:
+                    self.semantic.init_array_count()
+                self.arrays(self.last_token())
             else:
                 self.add_error('Id', follow_access()) 
         else:
@@ -257,10 +264,10 @@ class Parser:
         last = self.last_token()
         if self.verify({'.'}):
             self.semantic.init_access_reading(last)
-        self.semantic.add_access_reading(last.lexeme)
+        self.semantic.add_access_reading(last)
 
         if self.eat_lexeme('.'):
-            self.semantic.add_access_reading('.')
+            self.semantic.add_access_reading(self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
 
             if self.semantic.reading_expr:
@@ -270,8 +277,13 @@ class Parser:
                     self.semantic.proc_call_add_param(self.last_token())
                     self.semantic.add_expr(self.last_token().lexeme, self.last_token())
 
-                self.semantic.verify_id_not_declared(self.last_token(), scope)
-                self.arrays()
+                if self.token.lexeme == '[':
+                    self.semantic.init_array_count()
+                else:
+                    self.semantic.verify_id_not_declared(self.last_token(), scope)
+
+                    
+                self.arrays(self.last_token())
                 self.accesses(scope)
             else:
                 self.add_error('Id', follow_accesses())
@@ -514,17 +526,26 @@ class Parser:
     def expr(self):
         self.or_()
 
-    def arrays(self):
+    def arrays(self, identifier=0):
         if self.verify(first_array()):
-            self.array()
-            self.arrays()
+            self.array(identifier)
+            self.arrays(identifier)
+        else:
+            self.semantic.end_array_count(identifier)
             
-    def array(self):
+    def array(self, identifier=0):
         if self.eat_lexeme('['):
+            self.semantic.add_access_reading(self.last_token())
+            self.semantic.add_array_count()
+            if not identifier == 0:
+                self.semantic.increment_array(identifier)
+
             if self.verify(first_expr()):
                 self.semantic.init_expr()
                 self.expr()
                 self.semantic.verify_is_int(self.last_token())
+            else:
+                self.semantic.add_error_empty_array(self.last_token())
 
             if not self.eat_lexeme(']'):
                 self.add_error(']', follow_array()) 
@@ -564,7 +585,7 @@ class Parser:
         if self.eat_code(Code.IDENTIFIER):
             if hasattr(type, 'lexeme'):
                 self.semantic.add_id_declaration(self.last_token(), type, 'var')
-            self.arrays()
+            self.arrays(self.last_token())
         else:
             self.add_error('Id', follow_var())
             
@@ -573,7 +594,7 @@ class Parser:
             if self.eat_code(Code.IDENTIFIER):
                 if hasattr(type, 'lexeme'):
                     self.semantic.add_id_declaration(self.last_token(), type, 'var')
-                self.arrays()
+                self.arrays(self.last_token())
                 self.var_list(type)
             else:
                 self.add_error('Id', follow_var_list())
@@ -609,15 +630,31 @@ class Parser:
         elif self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
-            self.semantic.verify_type_not_exists(self.last_token());
+            cur_token = self.token
+
+            if self.token.lexeme == '(':
+                self.semantic.init_proc_call(self.last_token())
+            elif self.token.lexeme == '[':
+                self.semantic.init_array_count()
+            elif self.verify(first_stm_id()):
+                self.semantic.verify_id_not_declared(self.last_token(), '')
+            
+            if not self.verify(first_stm_id()):
+                self.semantic.verify_type_not_exists(self.last_token());
+
             self.var_id(self.last_token())
+
+            if cur_token.lexeme == '(':
+                self.semantic.verify_proc_not_declared()
         else:
             self.add_error('Var Declaration', follow_var_decl())
 
     def var_decls(self):
         if self.verify(first_var_decl()):
+            self.semantic.init_var_decl()
             self.var_decl()
             self.var_decls()
+        self.semantic.end_var_decl()
 
     def var_block(self):
         if self.eat_lexeme('var'):
@@ -730,7 +767,7 @@ class Parser:
         if self.eat_code(Code.IDENTIFIER):
             if hasattr(type, 'lexeme'):
                 self.semantic.add_id_declaration(self.last_token(), type, 'const')
-            self.arrays()
+            self.arrays(self.last_token())
         else:
             self.add_error('Id', follow_const())
             
@@ -739,7 +776,7 @@ class Parser:
             if self.eat_code(Code.IDENTIFIER):
                 if hasattr(type, 'lexeme'):
                     self.semantic.add_id_declaration(self.last_token(), type, 'const')
-                self.arrays()
+                self.arrays(self.last_token())
                 self.const_list(type)
             else:
                 self.add_error('Id', follow_const_list())  
@@ -776,15 +813,32 @@ class Parser:
         elif self.verify(first_stm_scope()):
             self.stm_scope()
         elif self.eat_code(Code.IDENTIFIER):
-            self.semantic.verify_type_not_exists(self.last_token());
+            
+            cur_token = self.token
+
+            if self.token.lexeme == '(':
+                self.semantic.init_proc_call(self.last_token())
+            elif self.token.lexeme == '[':
+                self.semantic.init_array_count()
+            elif self.verify(first_stm_id()):
+                self.semantic.verify_id_not_declared(self.last_token(), '')
+            
+            if not self.verify(first_stm_id()):
+                self.semantic.verify_type_not_exists(self.last_token());
+
             self.const_id(self.last_token())
+
+            if cur_token.lexeme == '(':
+                self.semantic.verify_proc_not_declared()
         else:
             self.add_error('Const Declaration', follow_const_decl())
 
     def const_decls(self):
         if self.verify(first_const_decl()):
+            self.semantic.init_var_decl()
             self.const_decl()
             self.const_decls()
+        self.semantic.end_var_decl()
     
     def const_block(self):
         if self.eat_lexeme('const'):
@@ -892,6 +946,8 @@ class Parser:
                 else:
                     self.add_error(')', follow_proc_decl())
             elif self.eat_lexeme('start'):
+                if self.start_found:
+                    self.semantic.add_start_error(self.last_token())
                 self.start_found = True
                 self.semantic.change_scope('start')
 

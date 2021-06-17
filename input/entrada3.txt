@@ -6,35 +6,27 @@ procedure teste() {}
 
 procedure p(int a) {}
 
-procedure p(int a[]) {}
-
 procedure p(string a, real b) {}
 
-procedure p(string nome[], real b) {}
+procedure p(real a, int b) {} // Correto. Sobrecarga OK
 
-procedure p(real a, int b) {}
-
-procedure teste() {} //erro
-
-procedure testes() {}
+procedure teste() {} // Erro. Já existe 
 
 procedure p(int x, real y) {}
 
 function int f() { return 1; }
 
-function real f() { return 1.1; } //erro
+function real f() { return 1.1; } // Erro de duplicidade. Além de erro no retorno, já que a função já cadastrada na tabela de símbolos retorna um inteiro.
 
 function boolean f(real a) { return false; }
 
-function int f(real a) { return 1; } //erro
+function int f(real a) { return 1; } // Erro. já existe f(real). Além de erro no retorno, já que a função já cadastrada na tabela de símbolos retorna um boolean.
 
 function string f(string a) { return ""; }
 
-function string f(string a[]) { return "hello world"; }
+function real f() { return 1.2; } // Erro. já existe f() e erro no retorno, pois já existe outro na tabela de símbolos.
 
-function real f() { return 1.2; } //erro
-
-function string f(real a) { return "test"; } //erro
+function string f(real a) { return "test"; } // Erro. Já existe f(real)
 
 procedure start() {}
 

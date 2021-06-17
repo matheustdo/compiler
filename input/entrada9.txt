@@ -32,6 +32,7 @@ const
 	int teste, cinco = 5;
 	int a[2][2] = {a, b}, {c, d};
 	int oxe = 9;
+	int outroArray[] = 5;
 }
 var
 {
@@ -49,6 +50,7 @@ var
 	typedef struct Teste tipoTeste;
 	tipoInteiro oitenta;
 	int testedoEscopo;
+	int algo[][];
 }
 
 procedure oxe1()
@@ -150,6 +152,8 @@ procedure start()
 		struct Teste agoranao;
 		struct Teste testeDoTipo;
 		typedef struct Teste sim;
+		int arrayzinho[];
+		sim testeTypedefStruct;
 	}
 	testedoEscopo = 5;
 	oitenta = 5;
@@ -160,11 +164,15 @@ procedure start()
 	global.agora.fff.aff = true || false;
 	global.inteiro = 1;
 	agoranao.ba = 5;
-	local.ux = local.id +  oxe1(funcaoo(global.situacao, ux, outra(ux, ux, ux)), ue, ue, ue) + 1/3 + 9 * 3 * ( 5 * (35*4) + 6);
+	local.ux = local.id +  oxe1(funcaoo(global.situacao, ux + global.agora.ba, outra(ux, ux, ux)), ue, ue, ue) + 1/3 + 9 * 3 * ( 5 * (35*4) + 6);
 	ux = 1;
 	ux = local.ux;
 	global.ux = 5.5 + 3.3;
 	ux = oxe1(ux,ux,ux,ux) + algo.ba;
 	ux = oxe1(algo.ba, global.agora.fff, 3, 5*3);
 	ux = ux + 2;
+	global.algo[5] = 5;
+	arrayzinho[5][2] = 5;
+	ux = 5;
+	global.b = 5;
 }

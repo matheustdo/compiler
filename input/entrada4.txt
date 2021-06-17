@@ -21,7 +21,6 @@ function int f(int a) {
 
 	c = 3.14;
 	d = "test"; //erro em d
-	// e = [10]; //erro sintático em e
 
 	return a;
 }

@@ -34,6 +34,9 @@ class Semantic:
         self.proc_call_str = ''
         self.reading_proc_call = False
         self.proc_call_array = []
+        self.var_decl = False
+        self.array_counting = False
+        self.array_count = 0
 
     def add(self, scope, key, item):
         self.symbols[scope][key] = item
@@ -64,7 +67,7 @@ class Semantic:
             elif '@types' in self.symbols['global']:
                 if type_token.lexeme in self.symbols['global']['@types']:
                     type_lexeme = self.symbols[self.scope]['@types'][type_token.lexeme]['type']
-            self.add(self.scope, identifier.lexeme, { 'type': type_lexeme, 'conf': conf})
+            self.add(self.scope, identifier.lexeme, { 'type': type_lexeme, 'conf': conf, 'array': 0})
 
     def verify_id_not_declared(self, identifier, scope):
         if not hasattr(identifier, 'lexeme'):
@@ -83,7 +86,7 @@ class Semantic:
                     is_a_function = False
 
             
-            if not is_a_function and hasattr(identifier, 'lexeme'):
+            if not is_a_function:
                 if scope == 'global':
                     if not identifier.lexeme in self.symbols[scope]:
                         self.add_error(identifier, 'Identifier not declared: `global.' + identifier.lexeme + '`')
@@ -418,7 +421,7 @@ class Semantic:
             return
 
         type_found = self.get_type_expression(token, self.expr_array)
-            
+        
         if not 'int' == type_found:
             self.add_error(token, 'You cannot use a non int as an array index.')
         
@@ -597,61 +600,80 @@ class Semantic:
         self.reading_access = True
         self.access_token = begining_token
         
-    def add_access_reading(self, lexeme):
+    def add_access_reading(self, token):
+        if not hasattr(token, 'lexeme'):
+            return
+
         if self.reading_access:
-            self.access += lexeme
+            self.access += token.lexeme
 
     def get_access_type(self, access, token):
         if not hasattr(token, 'lexeme'):
             return
 
-        access_array = access.split('.');
+        array_count = access.count('[');
+        aux_string = access.replace("[", "").replace("]", "")
+        last_array = 0
+        access_array = aux_string.split('.');
         first_item = True
         last_scope = access_array[0]
         cur_str = access_array[0]
         error = False
-
+        
         if last_scope != 'global' and last_scope != 'local':
             if last_scope in self.symbols[self.scope]:
                 last_scope = self.symbols[self.scope][last_scope]['type']
             elif last_scope in self.symbols['global']:
                 last_scope = self.symbols['global'][last_scope]['type']
             else:
-                self.add_error(token, 'This variable does not exists: `' + cur_str + '`')
+                self.add_error(token, 'This identifier does not exist: `' + cur_str + '`')
                 return 'invalid'
 
         for index, item in enumerate(access_array):
             if not first_item:
                 cur_str += '.'
                 cur_str += item
+                
                 if last_scope == 'global':
                     if item in self.symbols['global']:
+                        if 'array' in self.symbols['global'][item]:
+                            last_array = self.symbols['global'][item]['array']
                         last_scope = self.symbols['global'][item]['type']
                     else:
-                        self.add_error(token, 'This variable does not exists: `' + cur_str + '`')
+                        self.add_error(token, 'This identifier does not exist: `' + cur_str + '`')
                         error = True
                         break
                 elif last_scope == 'local':
                     if item in self.symbols[self.scope]:
+                        if 'array' in self.symbols[self.scope][item]:
+                            last_array = self.symbols[self.scope][item]['array']
                         last_scope = self.symbols[self.scope][item]['type']
                     else:
-                        self.add_error(token, 'This variable does not exists: `' + cur_str + '`')
+                        self.add_error(token, 'This identifier does not exist: `' + cur_str + '`')
                         error = True
                         break
                 else:
                     if last_scope in self.symbols:
                         if item in self.symbols[last_scope]:
+                            if 'array' in self.symbols[last_scope][item]:
+                                last_array = self.symbols[last_scope][item]['array']
                             last_scope = self.symbols[last_scope][item]['type']
                         else:
-                            self.add_error(token, 'This variable does not exists: `' + cur_str + '`')
+                            self.add_error(token, 'This identifier does not exist: `' + cur_str + '`')
                             error = True
                             break
                     else:
                         if index + 1 < len(access_array):
-                            self.add_error(token, 'This variable does not exists: `' + cur_str + '`')
+                            self.add_error(token, 'This identifier does not exist: `' + cur_str + '`')
                             error = True
                             break
             first_item = False
+
+        if last_array < array_count:
+            if last_array == 0:
+                self.add_error(token, 'This identifier is not an array: `' + access + '`')
+            else:
+                self.add_error(token, 'You cannot access an inexistent dimension: `' + access + '`')
 
         if error:
             return 'invalid'
@@ -677,7 +699,7 @@ class Semantic:
             return
 
         if '@types' in self.symbols[self.scope]:
-            if not type_token.lexeme in self.symbols[self.scope]['@types']:
+            if not type_token.lexeme in self.symbols[self.scope]['@types'] and not type_token.lexeme in self.symbols['global']['@types']:
                 self.add_error(type_token, 'This type has not defined: `' + type_token.lexeme + '`')   
         elif '@types' in self.symbols['global']:
             if not type_token.lexeme in self.symbols['global']['@types']:
@@ -783,9 +805,10 @@ class Semantic:
                     keys_params = ''
 
                     for index, p_n in enumerate(params_name):
-                        keys_params += p_n.split()[0]
-                        if index  +1 < len(params_name):
-                            keys_params += ','
+                        if len(p_n.split()) > 0:
+                            keys_params += p_n.split()[0]
+                            if index  +1 < len(params_name):
+                                keys_params += ','
 
                     if proc == self.proc_call_token.lexeme + '(' + keys_params + ')':
                         found = True
@@ -797,6 +820,73 @@ class Semantic:
         self.proc_call_str = ''
         self.reading_proc_call = False
         self.proc_call_array = []
+
+    def increment_array(self, identifier):
+        if not hasattr(identifier, 'lexeme'):
+            return
+
+        if identifier.lexeme in self.symbols[self.scope]:
+            if 'array' in self.symbols[self.scope][identifier.lexeme]:
+                self.symbols[self.scope][identifier.lexeme]['array'] += 1
+            else:
+                self.symbols[self.scope][identifier.lexeme]['array'] = 1
+
+    def add_error_empty_array(self, token):
+        if not self.var_decl:
+            self.add_error(token, 'You should insert a index on that array.')
+
+    def init_var_decl(self):
+        self.var_decl = True
+
+    def end_var_decl(self):
+        self.var_decl = False
+
+    def init_array_count(self):
+        self.array_counting = True
+        self.array_count = 0
+        
+    def add_array_count(self):
+        if self.array_counting:
+            self.array_count += 1
+
+    def end_array_count(self, identifier):
+        if not hasattr(identifier, 'lexeme'):
+            return
+
+        if self.array_counting and not self.reading_access:
+            is_a_function = False
+
+            for key in self.symbols:
+                try:
+                    proc_key = key[:(key.index('('))] + '('
+                    if identifier.lexeme + '(' == proc_key:
+                        is_a_function = True
+                        break
+                except:
+                    is_a_function = False
+
+            if is_a_function:
+                self.add_error(identifier, 'You cannot access a function/procedure using indexes: `' + identifier.lexeme + '`')
+            else:
+                if identifier.lexeme in self.symbols[self.scope]:
+                    array = self.symbols[self.scope][identifier.lexeme]['array']
+                    if self.array_count > array:
+                        self.add_error(identifier, 'You cannot access an inexistent dimension at: `' + identifier.lexeme + '`')
+                elif identifier.lexeme in self.symbols['global']:
+                    array = self.symbols['global'][identifier.lexeme]['array']
+                    if self.array_count > array:
+                        self.add_error(identifier, 'You cannot access an inexistent dimension at: `' + identifier.lexeme + '`')
+                else:
+                    self.add_error(identifier, 'Identifier not declared: `' + identifier.lexeme + '`')
+
+        self.array_counting = False
+        self.array_count = 0
+
+    def add_start_error(self, token):
+        if not hasattr(token, 'lexeme'):
+            return
+
+        self.add_error(token, 'You already declared a start() procedure.')
 
     def log(self):
         print(self.symbols)

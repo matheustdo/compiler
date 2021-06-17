@@ -6,14 +6,14 @@ procedure p(int x, real y) {
 	var {
 		int valor1, valor2, valor3;
 		real b;
-		string valor1, valor2; //erro nas 2 variáveis
+		string valor1, valor2; // Erro nas 2 variáveis
 	}
 }
 
-function int f(int x, real x) { //erro no x
+function int f(int x, real x) { // Erro no 'x'
 	var {
 		string nome, sobrenome, idade;
-		int d, e, idade;     //erro na idade
+		int d, e, idade;     // Erro em 'idade'
 	}
 
 	return e;
@@ -23,6 +23,6 @@ procedure start() {
 	var {
 		boolean a; 
 		int b;
-		real a; //erro no a
+		real a; // Erro no 'a'
 	}
 }
