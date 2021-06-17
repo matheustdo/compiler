@@ -175,4 +175,9 @@ procedure start()
 	arrayzinho[5] = 5;
 	ux = 5;
 	global.b = 5;
+	ux = arrayzinho[2];
+	oxe1(6);
+	oxe1(6, 5+9*8, 2, arrayzinho[2] + 5);
+	ux = oxe1(6, 5+9*8, 2, 3);
+	ux = local.arrayzinho[2] + 9;
 }

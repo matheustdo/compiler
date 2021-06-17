@@ -27,7 +27,7 @@ procedure p2(int b, boolean a) {
 }
 
 function boolean f0() {
-	f2("String de teste", 5.0 + 6.5); Erro. f2(string, real) ainda não foi declarado.
+	f2("String de teste", 5.0 + 6.5); // Erro. f2(string, real) ainda não foi declarado.
 	return true;
 }
 

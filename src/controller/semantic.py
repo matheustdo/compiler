@@ -37,6 +37,9 @@ class Semantic:
         self.var_decl = False
         self.array_counting = False
         self.array_count = 0
+        self.int_expr = ''
+        self.int_expr_array = []
+        self.int_reading_expr = False
 
     def add(self, scope, key, item):
         self.symbols[scope][key] = item
@@ -293,21 +296,30 @@ class Semantic:
                     else:
                         new_index = index
                         access_list = last_scope
+                        is_array = False
 
                         if last_scope == 'global' or last_scope == 'local':
                             access_list += '.'
                         
+                        array_found = 0
+
                         while new_index < array_len:
                             if expr_array[new_index].code == Code.IDENTIFIER:
                                 access_list += expr_array[new_index].lexeme
                             elif expr_array[new_index].lexeme == '.':
                                 access_list += '.'
-                            else:
+                            elif expr_array[new_index].lexeme == '[':
+                                access_list += expr_array[new_index].lexeme
+                                array_found += 1
+                            elif expr_array[new_index].lexeme == ']':
+                                array_found -= 1
+                                access_list += expr_array[new_index].lexeme
+                            elif array_found == 0:
                                 break
                             new_index += 1
-                        
-                        found_type = self.get_access_type(access_list, token)
-                        
+                            
+                        found_type = self.get_access_type(access_list, token, True)
+
                         if found_type == 'int':
                             is_int = 1
                         elif found_type == 'real':
@@ -362,10 +374,9 @@ class Semantic:
     def verify_assign_type(self, identifier, scope):
         if not hasattr(identifier, 'lexeme'):
             return
-
+            
         if self.access_assign != '':
             type_found = self.get_type_expression(identifier, self.expr_array)
-            
             if self.access_assign == 'invalid' or type_found == 'invalid' or self.access_assign != type_found:
                 self.add_error(identifier, 'You cannot assign `' + type_found +'` to ' + '`' + self.access_assign + '`')
         else:
@@ -422,18 +433,29 @@ class Semantic:
         if not hasattr(token, 'lexeme'):
             return
 
-        type_found = self.get_type_expression(token, self.expr_array)
+        type_found = self.get_type_expression(token, self.int_expr_array)
         
         if not 'int' == type_found:
             self.add_error(token, 'You cannot use a non int as an array index.')
         
-        self.expr = ''
-        self.expr_array = []
-        self.reading_expr = False
+        self.int_expr = ''
+        self.int_expr_array = []
+        self.int_reading_expr = False
+
+    def init_int_expr(self):
+        self.int_expr = ''
+        self.int_expr_array = []
+        self.int_reading_expr = True
+
+    def add_int_expr(self, expr_increment, token):
+        if self.int_reading_expr:
+            self.int_expr += expr_increment
+            self.int_expr_array.append(token)
 
     def add_expr(self, expr_increment, token):
-        self.expr += expr_increment
-        self.expr_array.append(token)
+        if self.reading_expr:
+            self.expr += expr_increment
+            self.expr_array.append(token)
 
     def init_expr(self):
         self.expr = ''
@@ -609,7 +631,7 @@ class Semantic:
         if self.reading_access:
             self.access += token.lexeme
 
-    def get_access_type(self, access, token):
+    def get_access_type(self, access, token, from_get_type=False):
         if not hasattr(token, 'lexeme'):
             return
 
@@ -630,6 +652,16 @@ class Semantic:
             else:
                 self.add_error(token, 'This identifier does not exist: `' + cur_str + '`')
                 return 'invalid'
+
+        if from_get_type and len(access_array) == 1:
+            lexeme = access_array[0]
+
+            if lexeme in self.symbols[self.scope]:
+                if 'array' in self.symbols[self.scope][lexeme]:
+                    last_array = self.symbols[self.scope][lexeme]['array']
+            elif lexeme in self.symbols['global']:
+                if 'array' in self.symbols['global'][lexeme]:
+                    last_array = self.symbols['global'][lexeme]['array']
 
         for index, item in enumerate(access_array):
             if not first_item:
@@ -670,12 +702,22 @@ class Semantic:
                             error = True
                             break
             first_item = False
-
-        if last_array < array_count:
-            if last_array == 0:
-                self.add_error(token, 'This identifier is not an array: `' + access + '`')
-            else:
-                self.add_error(token, 'You cannot access an inexistent dimension: `' + access + '`')
+            
+        if from_get_type: 
+            if array_count < last_array:
+                self.add_error(token, 'You are not accessing the correct last array dimension: `' + access + '`')
+            elif array_count > last_array:
+                if last_array == 0:
+                    self.add_error(token, 'This identifier is not an array: `' + access + '`')
+                else:
+                    self.add_error(token, 'You cannot access an inexistent dimension: `' + access + '`')
+        elif not self.reading_expr:
+            if array_count > last_array:
+                if last_array == 0:
+                    self.add_error(token, 'This identifier is not an array: `' + access + '`')
+                else:
+                    self.add_error(token, 'You cannot access an inexistent dimension: `' + access + '`')
+            
 
         if error:
             return 'invalid'
@@ -740,6 +782,9 @@ class Semantic:
             self.proc_call_array.append(token)
 
     def init_proc_call(self, token):
+        if not hasattr(token, 'lexeme'):
+            return
+
         self.proc_call_token = token
         self.proc_call_str = token.lexeme
         self.reading_proc_call = True

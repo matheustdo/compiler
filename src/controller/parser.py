@@ -395,29 +395,35 @@ class Parser:
         if self.eat_lexeme('!'): 
             self.semantic.proc_call_add_param(self.last_token())
             self.semantic.add_expr('!', self.last_token())
+            self.semantic.add_int_expr('!', self.last_token())
             self.unary()
         elif self.eat_lexeme('local'):
             self.semantic.proc_call_add_param(self.last_token())
             self.semantic.add_expr('local', self.last_token())
+            self.semantic.add_int_expr('local', self.last_token())
             self.access('local')
             self.accesses('local')
         elif self.eat_lexeme('global'):
             self.semantic.proc_call_add_param(self.last_token())
             self.semantic.add_expr('global', self.last_token())
+            self.semantic.add_int_expr('global', self.last_token())
             self.access('global')
             self.accesses('global')
         elif self.eat_code(Code.IDENTIFIER):
             self.semantic.proc_call_add_param(self.last_token())
             self.semantic.add_expr(self.last_token().lexeme, self.last_token())
+            self.semantic.add_int_expr(self.last_token().lexeme, self.last_token())
             self.id_value()
         elif self.eat_lexeme('('):
             self.semantic.proc_call_add_param(self.last_token())
             self.semantic.add_expr('(', self.last_token())
+            self.semantic.add_int_expr('(', self.last_token())
             self.expr()
 
             if self.eat_lexeme(')'):
                 self.semantic.proc_call_add_param(self.last_token())
                 self.semantic.add_expr(')', self.last_token())
+                self.semantic.add_int_expr('(', self.last_token())
             else:
                 self.add_error(')', follow_unary()) 
         elif not (self.eat_code(Code.NUMBER) or self.eat_code(Code.STRING) or
@@ -426,15 +432,18 @@ class Parser:
         else:
             self.semantic.proc_call_add_param(self.last_token())
             self.semantic.add_expr(self.last_token().lexeme, self.last_token())
+            self.semantic.add_int_expr(self.last_token().lexeme, self.last_token())
 
     def mult_2(self):
         if self.eat_lexeme('*'):
             self.semantic.add_expr('*', self.last_token())
+            self.semantic.add_int_expr('*', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.unary()
             self.mult_2()
         elif self.eat_lexeme('/'):
             self.semantic.add_expr('/', self.last_token())
+            self.semantic.add_int_expr('/', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.unary()
             self.mult_2()
@@ -446,11 +455,13 @@ class Parser:
     def add_2(self):
         if self.eat_lexeme('+'):
             self.semantic.add_expr('+', self.last_token())
+            self.semantic.add_int_expr('+', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.mult_()
             self.add_2()
         elif self.eat_lexeme('-'):
             self.semantic.add_expr('-', self.last_token())
+            self.semantic.add_int_expr('-', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.mult_()
             self.add_2()
@@ -462,21 +473,25 @@ class Parser:
     def compare_2(self):
         if self.eat_lexeme('<'):
             self.semantic.add_expr('<', self.last_token())
+            self.semantic.add_int_expr('<', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.add_()
             self.compare_2()
         elif self.eat_lexeme('>'):
             self.semantic.add_expr('>', self.last_token())
+            self.semantic.add_int_expr('>', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.add_()
             self.compare_2()
         elif self.eat_lexeme('<='):
             self.semantic.add_expr('<=', self.last_token())
+            self.semantic.add_int_expr('<=', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.add_()
             self.compare_2()
         elif self.eat_lexeme('>='):
             self.semantic.add_expr('>=', self.last_token())
+            self.semantic.add_int_expr('>=', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.add_()
             self.compare_2()
@@ -488,11 +503,13 @@ class Parser:
     def equate_2(self):
         if self.eat_lexeme('=='):
             self.semantic.add_expr('==', self.last_token())
+            self.semantic.add_int_expr('==', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.compare_()
             self.equate_2()
         elif self.eat_lexeme('!='):
             self.semantic.add_expr('!=', self.last_token())
+            self.semantic.add_int_expr('!=', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.compare_()
             self.equate_2()
@@ -504,6 +521,7 @@ class Parser:
     def and_2(self):
         if self.eat_lexeme('&&'):
             self.semantic.add_expr('&&', self.last_token())
+            self.semantic.add_int_expr('&&', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.equate_()
             self.and_2()
@@ -515,6 +533,7 @@ class Parser:
     def or_2(self):
         if self.eat_lexeme('||'):
             self.semantic.add_expr('||', self.last_token())
+            self.semantic.add_int_expr('||', self.last_token())
             self.semantic.proc_call_add_param(self.last_token())
             self.and_()
             self.or_2()
@@ -535,19 +554,24 @@ class Parser:
             
     def array(self, identifier=0):
         if self.eat_lexeme('['):
+            self.semantic.proc_call_add_param(self.last_token())
             self.semantic.add_access_reading(self.last_token())
             self.semantic.add_array_count()
+            self.semantic.add_expr('[', self.last_token())
             if identifier != 0:
                 self.semantic.increment_array(identifier)
 
             if self.verify(first_expr()):
-                self.semantic.init_expr()
+                self.semantic.init_int_expr()
                 self.expr()
                 self.semantic.verify_is_int(self.last_token())
             else:
                 self.semantic.add_error_empty_array(self.last_token())
-
-            if not self.eat_lexeme(']'):
+            
+            if self.eat_lexeme(']'):
+                self.semantic.proc_call_add_param(self.last_token())
+                self.semantic.add_expr(']', self.last_token())
+            else:
                 self.add_error(']', follow_array()) 
         else:
             self.add_error('[', follow_array())
