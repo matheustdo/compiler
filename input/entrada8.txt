@@ -5,10 +5,8 @@
 struct S {
 	const {
 		int cadastro = 16;
+		real valor = 26.50;
 		real cr[10] = {10,10};
-
-		cadastro = 1;
-		cr[7] = 2.0;
 	}
 }
 
@@ -26,11 +24,11 @@ var {
 	typedef struct S S;
 	typedef struct T T;
 
-	S s[10][10];
-	T t[10][10];
+	S ss;
+	T tt;
 }
 
-function real sum(real vr[]) {
+function real sum(real rr) {
 	var {
 		int i;
 		real s;
@@ -40,25 +38,28 @@ function real sum(real vr[]) {
 	}
 
 	while(i < 10)
-		s = s + vr[i];
+		s = rr + vr[i];
 	
 	return s;
 }
 
 procedure start() {
-	t[1][2].cadastro = 7;        //erro em cadastro
-	
+	var {
+		int i;
+		int arrayInteiro[2];
+		int matrizInteiro[2][2];
+		int arrayErro[true]; // Erro. Não é possível utilizar índices que não são inteiro.
+		int arrayErro2[5 * 6 / 6]; // Erro. Não é possível utilizar índices que não são inteiro.
+	}
 
-	t[4][5].cr[5] = vr[4]; //erro
-	vr[7] = t[4][5].cr[6];
-
-	t[4][5].cr[6] = vr;    //erro
-	t[1][1].cr = vr;       //erro
-
-    	t[1][2].vr[6] = vr[3];
-	t[4][5].vr = vr[7];    //erro em vr
-
-	print(sum(s[1][1].cr));
-	print(sum(t[2][2].cr));
-	print(sum(t[3][3].vr[2]));   //erro
+	ss.cadastro = 6;
+	ss.cadastro = 6 * 3.0; // Erro. 'S.cadastro' não recebe 'real'.
+	tt.cadastro = 6;
+	tt.cadastro = 6 * 3.0; // Erro. T herdou 'cadastro' de S, logo 'T.cadastro' não recebe 'real'.
+	arrayInteiro[2] = 7;
+	arrayInteiro[2][2] = 7; // Erro. O array não tem uma segunda dimensão.
+	i[3] = 7; // Erro. 'i' não é um array.
+	i = arrayInteiro[2] * arrayInteiro[2] + ss.cadastro;
+	i = arrayInteiro[2] + tt.valor; // Erro. tt.valor não é inteiro;
+	i = 98 + arrayInteiro[2][2]; // Erro. O array não tem uma segunda dimensão.
 }

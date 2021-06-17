@@ -1,9 +1,0 @@
-//Teste de cadeia de caracteres
-var
-{
-	string nome = "nome pro'prio ";
-	string palavra = "";
-	string palavra2 = " ";
-	string sobrenome = " sobre " tutores ";
-
-}

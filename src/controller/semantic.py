@@ -296,7 +296,6 @@ class Semantic:
                     else:
                         new_index = index
                         access_list = last_scope
-                        is_array = False
 
                         if last_scope == 'global' or last_scope == 'local':
                             access_list += '.'
@@ -304,18 +303,21 @@ class Semantic:
                         array_found = 0
 
                         while new_index < array_len:
-                            if expr_array[new_index].code == Code.IDENTIFIER:
+                            if array_found == 0 and expr_array[new_index].code == Code.IDENTIFIER:
                                 access_list += expr_array[new_index].lexeme
-                            elif expr_array[new_index].lexeme == '.':
+                            elif array_found == 0 and expr_array[new_index].lexeme == '.':
                                 access_list += '.'
                             elif expr_array[new_index].lexeme == '[':
-                                access_list += expr_array[new_index].lexeme
+                                if array_found == 0:
+                                    access_list += expr_array[new_index].lexeme
                                 array_found += 1
                             elif expr_array[new_index].lexeme == ']':
                                 array_found -= 1
-                                access_list += expr_array[new_index].lexeme
+                                if array_found == 0:
+                                    access_list += expr_array[new_index].lexeme
                             elif array_found == 0:
                                 break
+
                             new_index += 1
                             
                         found_type = self.get_access_type(access_list, token, True)
@@ -498,7 +500,12 @@ class Semantic:
         func_str += '('
         cur_param = [func_array[2]]
         func_array_w_types = [func_array[0], func_array[1]]
-        
+        no_params = False
+
+        if params_index >= len(func_array):
+            no_params = True
+            func_str += ')'
+
         while params_index < len(func_array):
             token = func_array[params_index]
             
@@ -538,28 +545,33 @@ class Semantic:
         found_key = ''
         return_type = func_str
         
-        for key in self.symbols:
-            try:
-                proc_key = key[:(key.index('('))]
-                
-                if function_name in proc_key:
-                    params = key[(key.index('(') + 1):key.index(')')]
-                    splitted_params = params.split(',')
-                    params_str = ''
+        if no_params:
+            if func_str in self.symbols:
+                func_declared = True
+                found_key = func_str
+        else:
+            for key in self.symbols:
+                try:
+                    proc_key = key[:(key.index('('))]
+                    
+                    if function_name in proc_key:
+                        params = key[(key.index('(') + 1):key.index(')')]
+                        splitted_params = params.split(',')
+                        params_str = ''
 
-                    for i, param in enumerate(splitted_params):
-                        if len(splitted_params) > 0:
-                            params_str += param.split()[0]
+                        for i, param in enumerate(splitted_params):
+                            if len(splitted_params) > 0:
+                                params_str += param.split()[0]
 
-                            if i + 1< len(splitted_params):
-                                params_str += ','
-                                
-                    if function_name + '(' + params_str + ')' == func_str:
-                        func_declared = True
-                        found_key = key
-                        break
-            except:
-                func_declared = False
+                                if i + 1< len(splitted_params):
+                                    params_str += ','
+                                    
+                        if function_name + '(' + params_str + ')' == func_str:
+                            func_declared = True
+                            found_key = key
+                            break
+                except:
+                    func_declared = False
 
         if func_declared:
             if '@return' in self.symbols[found_key]:
@@ -575,7 +587,7 @@ class Semantic:
             else:
                 self.add_error(array[init_index_array], 'A procedure does not returns any type:`' + func_str + '`.')
         elif not child_error:
-            self.add_error(array[init_index_array], 'This function does not exists:`' + func_str + '`.')
+            self.add_error(array[init_index_array], 'This function does not exists: `' + func_str + '`.')
             error = True
 
         if not error:

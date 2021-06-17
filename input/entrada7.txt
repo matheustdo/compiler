@@ -7,48 +7,49 @@ var {
 	int i;
 	real r;
 	string s;
+	int array_int[];
 }
 
-procedure p() { return 0; } //erro em p
+procedure p() { return 0; } // Erro. Procedimentos não retornam valores.
 
-procedure proc2 () { return true; } //erro em proc2
+procedure proc2 () { return true; } // Erro. Procedimentos não retornam valores.
 
-function int fi() { return 2.0; } //erro em fi
+function int fi() { return 2.0; } // Erro. Retornando 'real' para 'int'.
 
-function int calcula_idade() {  } //erro em calcula_idade
+function int calcula_idade() {  } // Erro. Nenhum valor retornado.
 
-function boolean fs() { return "hello world"; } //erro em fs
+function boolean fs() { return "hello world"; } // Erro. Retornando 'string' para 'boolean'.
+
+function int retorna_int() { return 5; }
+
+function real retorna_real() { return r; }
+
+function int retorna_int(int i) { return 5; }
+
+function real retorna_real(real a, boolean b) { return r; }
 
 procedure start() {
-	b = proc2(); //erro
-	i = fi();
-	r = fr(); //erro
-	s = fs(); //erro
+	i = 9 * 9 + 3.2; // Erro. Expressão com tipos diferentes. Erro também da tentativa de atribuir um valor inválido ao 'i'.
+	i = 8 + array_int[3];
+	b = retorna_real(); // Erro. Atribuindo 'real' a 'boolean'.
+	i = b; // Erro. Atribuindo 'boolean' a 'int'
+	r = i + 7; // Erro. Atribuindo 'int' a 'real'
 
-	b = b; 
-	i = b; //erro
-	r = i; //erro
-
-	b = !b || (i > 1) && (r > 1.3) || i == "test"; //erro em i
-
-	s = !b || (i > 1) && (r > 1.3) || s == "test"; //erro em s
-
-	b = !b || (i > 1.3) && (r > 1) || s == "false"; //erro em r
+	i = retorna_int() + retorna_int();
+	i = retorna_int() + retorna_int; // Erro. 'retorna_int' é uma função, não uma variável.
+	i = retorna_int() * retorna_int(5 + 3 * array_int[3] + global.i);
+	i = retorna_int() * retorna_int(3 / 5); // Erro. Não existe retorna_int() com um real como parâmetro.
+	i = retorna_int() * retorna_real(3 / 5, true); // Erro. Expressão com tipos diferentes.
+	r = 1.76 * retorna_real(3 / 5, true);
+	r = b && false; // Erro. 'r' não pode receber 'boolean', pois é um 'real'.
 
 	if (b) then {
 		read(i);
 		print(b);
 	}
 
-	if (i == 0) then
-		print(i);
-
-	if (r != 1.3) then
-		print(r);
-
-	if (b > "true") then //erro em b
+	if (b > "true") then
 		print(s);
 
-	return 42; //erro
-
+	return 42; // Erro. Procedimentos não retornam valores.
 }
